@@ -1,7 +1,7 @@
 {
   "name": "ThermoLab",
-  "short_name": "Ther",
-  "description": "YOUR APP DESCRIPTION",
+  "short_name": "ThermoLab",
+  "description": "ThermoLab is a steam and fluid property explorer with Rankine and Brayton power cycle simulation, built for engineers and students.",",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
