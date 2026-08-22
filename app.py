@@ -3834,9 +3834,18 @@ T_tuple = tuple(float(t) for t in T_eval_range)
 P_tuple = tuple(float(p) for p in P_range)
 
 def add_state_marker(fig, x, y):
+    # NOTE: this file intentionally uses go.Scatter (SVG) everywhere below,
+    # not go.Scattergl (WebGL). The 6 diagrams used to use Scattergl for a
+    # perf boost, but each one opens its own WebGL context, and 6 open at
+    # once. Mobile browsers cap concurrent WebGL contexts (often well under
+    # 10) and evict page-wide under memory pressure, which is what caused
+    # charts to flicker on load and then all go blank together after a
+    # fullscreen toggle. These curves are only ~100-600 points each — plain
+    # SVG Scatter has no perceptible performance cost here and no context
+    # limit to hit.
     if not is_valid_number(x) or not is_valid_number(y):
         return
-    fig.add_trace(go.Scattergl(
+    fig.add_trace(go.Scatter(
         x=[x], y=[y], mode='markers',
         marker=dict(size=15, color=tc()['state'], symbol='circle', line=dict(color=tc()['marker_line'], width=2.5)),
         name='State Point',
@@ -3935,29 +3944,29 @@ with g1:
         vols, pres = generate_Pv_isotherm(fluid, T_c, limits["P_min"], limits["P_max"])
         if vols:
             T_disp = conv(T_c, 'T')
-            fig1.add_trace(go.Scattergl(
+            fig1.add_trace(go.Scatter(
                 x=conv(np.array(vols), 'V'), y=conv(np.array(pres), 'P'), mode='lines',
                 line=dict(color=tc()['isotherm'], width=2), showlegend=False,
                 hovertemplate=f"<b>Isotherm ({T_disp:.0f}{t_u})</b><br>v: %{{x:.4f}} {v_u}<br>P: %{{y:.2f}} {p_u}<extra></extra>"
             ))
     if dome is not None:
         v_out, p_out = generate_Pv_isotherm(fluid, max(dome['T']) + 15.0, limits["P_min"], limits["P_max"])
-        fig1.add_trace(go.Scattergl(
+        fig1.add_trace(go.Scatter(
             x=conv(np.array(v_out), 'V'), y=conv(np.array(p_out), 'P'), mode='lines', line=dict(color=tc()['supercrit'], width=1.5, dash='dot'), name='Supercritical Border',
             hovertemplate=f"<b>Supercritical Border</b><br>v: %{{x:.4f}} {v_u}<br>P: %{{y:.2f}} {p_u}<extra></extra>"
         ))
     v_state, p_state = generate_Pv_isotherm(fluid, state['T']-273.15, limits["P_min"], limits["P_max"])
     T_state_disp = conv(state['T']-273.15, 'T')
-    fig1.add_trace(go.Scattergl(
+    fig1.add_trace(go.Scatter(
         x=conv(np.array(v_state), 'V'), y=conv(np.array(p_state), 'P'), mode='lines', line=dict(color=tc()['state'], width=3), name='State Isotherm (T)',
         hovertemplate=f"<b>State Isotherm ({T_state_disp:.1f}{t_u})</b><br>v: %{{x:.4f}} {v_u}<br>P: %{{y:.2f}} {p_u}<extra></extra>"
     ))    
     if dome is not None:
-        fig1.add_trace(go.Scattergl(
+        fig1.add_trace(go.Scatter(
             x=conv(np.array(dome['vf']), 'V'), y=conv(np.array(dome['P']), 'P'), mode='lines', line=dict(color=tc()['dome_liq'], width=3.5), name='Sat Liquid',
             hovertemplate=f"<b>Saturated Liquid Curve</b><br>v_f: %{{x:.4f}} {v_u}<br>P: %{{y:.2f}} {p_u}<extra></extra>"
         ))
-        fig1.add_trace(go.Scattergl(
+        fig1.add_trace(go.Scatter(
             x=conv(np.array(dome['vg']), 'V'), y=conv(np.array(dome['P']), 'P'), mode='lines', line=dict(color=tc()['dome_vap'], width=3.5), name='Sat Vapor',
             hovertemplate=f"<b>Saturated Vapor Curve</b><br>v_g: %{{x:.4f}} {v_u}<br>P: %{{y:.2f}} {p_u}<extra></extra>"
         ))
@@ -3981,7 +3990,7 @@ with g2:
         ent, temps = gen_isobar_ST(fluid, P_bar * 100000, T_tuple)
         if ent:
             P_disp = conv(P_bar, 'P')
-            fig2.add_trace(go.Scattergl(
+            fig2.add_trace(go.Scatter(
                 x=conv(np.array(ent), 'S'), y=conv(np.array(temps), 'T'), mode='lines',
                 line=dict(color=tc()['isobar'], width=2),
                 showlegend=False,
@@ -3990,18 +3999,18 @@ with g2:
     ent_state, temps_state = gen_isobar_ST(fluid, state['P'], T_tuple)
     if ent_state:
         P_state_disp = conv(state['P']/100000, 'P')
-        fig2.add_trace(go.Scattergl(
+        fig2.add_trace(go.Scatter(
             x=conv(np.array(ent_state), 'S'), y=conv(np.array(temps_state), 'T'), mode='lines',
             line=dict(color=tc()['state'], width=3),
             name=f"State Isobar ({P_state_disp:.2f} {p_u2})",
             hovertemplate=f"<b>State Isobar ({P_state_disp:.2f} {p_u2})</b><br>s: %{{x:.3f}} {s_u}<br>T: %{{y:.1f}} {t_u2}<extra></extra>"
         ))
     if dome is not None:
-        fig2.add_trace(go.Scattergl(
+        fig2.add_trace(go.Scatter(
             x=conv(np.array(dome['sf']), 'S'), y=conv(np.array(dome['T']), 'T'), mode='lines', line=dict(color=tc()['dome_liq'], width=3.5), showlegend=False,
             hovertemplate=f"<b>Sat Liquid Boundary</b><br>s_f: %{{x:.3f}} {s_u}<br>T: %{{y:.1f}} {t_u2}<extra></extra>"
         ))
-        fig2.add_trace(go.Scattergl(
+        fig2.add_trace(go.Scatter(
             x=conv(np.array(dome['sg']), 'S'), y=conv(np.array(dome['T']), 'T'), mode='lines', line=dict(color=tc()['dome_vap'], width=3.5), showlegend=False,
             hovertemplate=f"<b>Sat Vapor Boundary</b><br>s_g: %{{x:.3f}} {s_u}<br>T: %{{y:.1f}} {t_u2}<extra></extra>"
         ))
@@ -4025,7 +4034,7 @@ with g3:
         vols, temps = gen_isobar_VT(fluid, P_bar * 100000, T_tuple)
         if vols:
             P_disp3 = conv(P_bar, 'P')
-            fig3.add_trace(go.Scattergl(
+            fig3.add_trace(go.Scatter(
                 x=conv(np.array(vols), 'V'), y=conv(np.array(temps), 'T'), mode='lines',
                 line=dict(color=tc()['isobar'], width=2),
                 showlegend=False,
@@ -4034,18 +4043,18 @@ with g3:
     v_state, temps_state = gen_isobar_VT(fluid, state['P'], T_tuple)
     if v_state:
         P_state_disp3 = conv(state['P']/100000, 'P')
-        fig3.add_trace(go.Scattergl(
+        fig3.add_trace(go.Scatter(
             x=conv(np.array(v_state), 'V'), y=conv(np.array(temps_state), 'T'), mode='lines',
             line=dict(color=tc()['state'], width=3),
             name=f"State Isobar ({P_state_disp3:.2f} {p_u3})",
             hovertemplate=f"<b>State Isobar ({P_state_disp3:.2f} {p_u3})</b><br>v: %{{x:.4f}} {v_u3}<br>T: %{{y:.1f}} {t_u3}<extra></extra>"
         ))
     if dome is not None:
-        fig3.add_trace(go.Scattergl(
+        fig3.add_trace(go.Scatter(
             x=conv(np.array(dome['vf']), 'V'), y=conv(np.array(dome['T']), 'T'), mode='lines', line=dict(color=tc()['dome_liq'], width=3.5), showlegend=False,
             hovertemplate=f"<b>Sat Liquid Boundary</b><br>v_f: %{{x:.4f}} {v_u3}<br>T: %{{y:.1f}} {t_u3}<extra></extra>"
         ))
-        fig3.add_trace(go.Scattergl(
+        fig3.add_trace(go.Scatter(
             x=conv(np.array(dome['vg']), 'V'), y=conv(np.array(dome['T']), 'T'), mode='lines', line=dict(color=tc()['dome_vap'], width=3.5), showlegend=False,
             hovertemplate=f"<b>Sat Vapor Boundary</b><br>v_g: %{{x:.4f}} {v_u3}<br>T: %{{y:.1f}} {t_u3}<extra></extra>"
         ))
@@ -4068,7 +4077,7 @@ with g4:
         ent, pres = gen_isotherm_HP(fluid, T_c + 273.15, P_tuple)
         if ent:
             T_disp4 = conv(T_c, 'T')
-            fig4.add_trace(go.Scattergl(
+            fig4.add_trace(go.Scatter(
                 x=conv(np.array(ent), 'H'), y=conv(np.array(pres), 'P'), mode='lines',
                 line=dict(color=tc()['isotherm'], width=2),
                 showlegend=False,
@@ -4077,18 +4086,18 @@ with g4:
     ent_state, pres_state = gen_isotherm_HP(fluid, state['T'], P_tuple)
     if ent_state:
         T_state_disp4 = conv(state['T']-273.15, 'T')
-        fig4.add_trace(go.Scattergl(
+        fig4.add_trace(go.Scatter(
             x=conv(np.array(ent_state), 'H'), y=conv(np.array(pres_state), 'P'), mode='lines',
             line=dict(color=tc()['state'], width=3),
             name=f"State Isotherm ({T_state_disp4:.1f} {t_u4})",
             hovertemplate=f"<b>State Isotherm ({T_state_disp4:.1f} {t_u4})</b><br>h: %{{x:.1f}} {h_u4}<br>P: %{{y:.2f}} {p_u4}<extra></extra>"
         ))    
     if dome is not None:
-        fig4.add_trace(go.Scattergl(
+        fig4.add_trace(go.Scatter(
             x=conv(np.array(dome['hf']), 'H'), y=conv(np.array(dome['P']), 'P'), mode='lines', line=dict(color=tc()['dome_liq'], width=3.5), showlegend=False,
             hovertemplate=f"<b>Sat Liquid Boundary</b><br>h_f: %{{x:.1f}} {h_u4}<br>P: %{{y:.2f}} {p_u4}<extra></extra>"
         ))
-        fig4.add_trace(go.Scattergl(
+        fig4.add_trace(go.Scatter(
             x=conv(np.array(dome['hg']), 'H'), y=conv(np.array(dome['P']), 'P'), mode='lines', line=dict(color=tc()['dome_vap'], width=3.5), showlegend=False,
             hovertemplate=f"<b>Sat Vapor Boundary</b><br>h_g: %{{x:.1f}} {h_u4}<br>P: %{{y:.2f}} {p_u4}<extra></extra>"
         ))
@@ -4113,7 +4122,7 @@ with g5:
         Hs, Ts = gen_isobar_HT(fluid, P_bar * 100000, T_tuple)
         if Hs:
             P_disp5 = conv(P_bar, 'P')
-            fig5.add_trace(go.Scattergl(
+            fig5.add_trace(go.Scatter(
                 x=conv(np.array(Hs), 'H'), y=conv(np.array(Ts), 'T'), mode='lines',
                 line=dict(color=tc()['isobar'], width=2),
                 showlegend=False,
@@ -4122,18 +4131,18 @@ with g5:
     Hs_state, Ts_state = gen_isobar_HT(fluid, state['P'], T_tuple)
     if Hs_state:
         P_state_disp5 = conv(state['P']/100000, 'P')
-        fig5.add_trace(go.Scattergl(
+        fig5.add_trace(go.Scatter(
             x=conv(np.array(Hs_state), 'H'), y=conv(np.array(Ts_state), 'T'), mode='lines',
             line=dict(color=tc()['state'], width=3),
             name=f"State Isobar ({P_state_disp5:.2f} {p_u5})",
             hovertemplate=f"<b>State Isobar ({P_state_disp5:.2f} {p_u5})</b><br>h: %{{x:.1f}} {h_u5}<br>T: %{{y:.1f}} {t_u5}<extra></extra>"
         ))   
     if dome is not None:
-        fig5.add_trace(go.Scattergl(
+        fig5.add_trace(go.Scatter(
             x=conv(np.array(dome['hf']), 'H'), y=conv(np.array(dome['T']), 'T'), mode='lines', line=dict(color=tc()['dome_liq'], width=3.5), showlegend=False,
             hovertemplate=f"<b>Sat Liquid Boundary</b><br>h_f: %{{x:.1f}} {h_u5}<br>T: %{{y:.1f}} {t_u5}<extra></extra>"
         ))
-        fig5.add_trace(go.Scattergl(
+        fig5.add_trace(go.Scatter(
             x=conv(np.array(dome['hg']), 'H'), y=conv(np.array(dome['T']), 'T'), mode='lines', line=dict(color=tc()['dome_vap'], width=3.5), showlegend=False,
             hovertemplate=f"<b>Sat Vapor Boundary</b><br>h_g: %{{x:.1f}} {h_u5}<br>T: %{{y:.1f}} {t_u5}<extra></extra>"
         ))
@@ -4157,7 +4166,7 @@ with g6:
         Ss, Hs = gen_isobar_SH(fluid, P_bar * 100000, T_tuple)
         if Ss:
             P_disp6 = conv(P_bar, 'P')
-            fig6.add_trace(go.Scattergl(
+            fig6.add_trace(go.Scatter(
                 x=conv(np.array(Ss), 'S'), y=conv(np.array(Hs), 'H'), mode='lines',
                 line=dict(color=tc()['isobar'], width=2),
                 showlegend=False,
@@ -4167,7 +4176,7 @@ with g6:
         Ss, Hs = gen_isotherm_SH(fluid, T_c + 273.15, P_tuple)
         if Ss:
             T_disp6 = conv(T_c, 'T')
-            fig6.add_trace(go.Scattergl(
+            fig6.add_trace(go.Scatter(
                 x=conv(np.array(Ss), 'S'), y=conv(np.array(Hs), 'H'), mode='lines',
                 line=dict(color='rgba(239, 68, 68, 0.5)', width=2, dash='dot'),
                 showlegend=False,
@@ -4176,7 +4185,7 @@ with g6:
     if dome is not None:
         Ss_out, Hs_out = gen_isotherm_SH(fluid, max(dome['T']) + 273.15 + 20.0, P_tuple)
         if Ss_out:
-            fig6.add_trace(go.Scattergl(
+            fig6.add_trace(go.Scatter(
                 x=conv(np.array(Ss_out), 'S'), y=conv(np.array(Hs_out), 'H'), mode='lines',
                 line=dict(color=tc()['supercrit'], width=2, dash='dot'),
                 name='Border Outside Dome',
@@ -4185,18 +4194,18 @@ with g6:
     Ss_state, Hs_state = gen_isobar_SH(fluid, state['P'], T_tuple)
     if Ss_state:
         P_state_disp6 = conv(state['P']/100000, 'P')
-        fig6.add_trace(go.Scattergl(
+        fig6.add_trace(go.Scatter(
             x=conv(np.array(Ss_state), 'S'), y=conv(np.array(Hs_state), 'H'), mode='lines',
             line=dict(color=tc()['state'], width=3),
             name=f"State Isobar ({P_state_disp6:.2f} {p_u6})",
             hovertemplate=f"<b>State Isobar ({P_state_disp6:.2f} {p_u6})</b><br>s: %{{x:.3f}} {s_u6}<br>h: %{{y:.1f}} {h_u6}<extra></extra>"
         ))
     if dome is not None:
-        fig6.add_trace(go.Scattergl(
+        fig6.add_trace(go.Scatter(
             x=conv(np.array(dome['sf']), 'S'), y=conv(np.array(dome['hf']), 'H'), mode='lines', line=dict(color=tc()['dome_liq'], width=3.5), name='Sat Liquid',
             hovertemplate=f"<b>Sat Liquid Boundary</b><br>s_f: %{{x:.3f}} {s_u6}<br>h_f: %{{y:.1f}} {h_u6}<extra></extra>"
         ))
-        fig6.add_trace(go.Scattergl(
+        fig6.add_trace(go.Scatter(
             x=conv(np.array(dome['sg']), 'S'), y=conv(np.array(dome['hg']), 'H'), mode='lines', line=dict(color=tc()['dome_vap'], width=3.5), name='Sat Vapor',
             hovertemplate=f"<b>Sat Vapor Boundary</b><br>s_g: %{{x:.3f}} {s_u6}<br>h_g: %{{y:.1f}} {h_u6}<extra></extra>"
         ))
