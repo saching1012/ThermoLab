@@ -3,7 +3,7 @@
   "name": "Streamlit",
   "icons": [
     {
-      "src": "favicon_512.png",
+      "src": "https://raw.githubusercontent.com/saching1012/ThermoLab/main/chemical.png",
       "type": "image/png",
       "sizes": "512x512"
     }
