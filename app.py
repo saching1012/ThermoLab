@@ -6,7 +6,7 @@ import functools
 import io
 
 st.set_page_config(
-    page_title="Thermolab",
+    page_title="ThermoLab",
     page_icon="https://raw.githubusercontent.com/saching1012/ThermoLab/main/chemical.png"
 )
 
