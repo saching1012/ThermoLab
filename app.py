@@ -12,6 +12,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+st.markdown('<link rel="manifest" href="/app/static/manifest.json">', unsafe_allow_html=True)
 if st.query_params.get("theme") not in ("dark", "light"):
     import streamlit.components.v1 as components
     components.html(
