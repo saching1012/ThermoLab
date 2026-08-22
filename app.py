@@ -10,8 +10,27 @@ st.set_page_config(
     page_title="ThermoLab",
     page_icon="🔥",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
+if st.query_params.get("theme") not in ("dark", "light"):
+    import streamlit.components.v1 as components
+    components.html(
+        """
+        <script>
+        try {
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var wanted = prefersDark ? 'dark' : 'light';
+            var url = new URL(window.parent.location.href);
+            if (url.searchParams.get('theme') !== wanted) {
+                url.searchParams.set('theme', wanted);
+                window.parent.location.replace(url.toString());
+            }
+        } catch (e) {}
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 def is_valid_number(value):
 
     return (
@@ -383,6 +402,14 @@ def tc():
             grid='#e7d9bc', fwh='#0369a1', extraction='#8a7a5f', label_text='#17120a',
         )
 def show_state_table(data):
+    if isinstance(data, pd.DataFrame):
+        # Every column here mixes fmt()-rounded numbers with plain-text
+        # labels (phase names, "N/A", "—") — pandas ends up with an
+        # 'object' dtype pyarrow can't reliably infer, which otherwise
+        # surfaces as a silent ArrowInvalid recovery (and a noisy log)
+        # every time one of these tables renders. Stringify for display;
+        # nothing downstream needs these as numeric dtypes.
+        data = data.astype(str)
     styled = data.style if isinstance(data, pd.DataFrame) else data
     try:
         styled = styled.hide(axis="index")
@@ -445,6 +472,9 @@ def unit_number_input(label, kind, min_value, max_value, value, step, key, help=
     return _to_canonical(entered, chosen_unit, kind)
 if "app_theme" not in st.session_state:
     _theme_qp = st.query_params.get("theme")
+    # "dark" here is only a last-resort fallback for the brief moment before
+    # the system-theme redirect above completes (or if JS is unavailable) —
+    # once ?theme= is set, that value always wins.
     st.session_state.app_theme = _theme_qp if _theme_qp in ("dark", "light") else "dark"
 
 def _toggle_theme():
@@ -1350,29 +1380,14 @@ _RESPONSIVE_CSS = """
             max-width: 300px !important;
         }
 
-        /* ---- Graph pairs (Steam Explorer rows 1-3, Rankine T-s/P-h row 4):
-           stay a 2-column grid on mobile, same as the desktop layout,
-           instead of Streamlit's default of stacking every st.columns()
-           block into a single column. Wildcard match on the "steam_graph_row"
-           key prefix covers any row without enumerating each one. ---- */
-        div[class*="st-key-steam_graph_row"] [data-testid="stHorizontalBlock"] {
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
-            gap: 6px !important;
-        }
-        div[class*="st-key-steam_graph_row"] [data-testid="stColumn"] {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-            min-width: 0 !important;
-            width: 50% !important;
-            padding: 0 3px !important;
-        }
-        /* Plotly figures shrink to fit their half-width column; trim their
-           own left/right margins a little further so axis titles/ticks
-           aren't cramped at this size. */
-        div[class*="st-key-steam_graph_row"] .js-plotly-plot {
-            font-size: 0.72em;
-        }
+        /* NOTE: graph-row columns (steam_graph_row*) used to be forced into
+           a 2-column grid here even on phones. That's been removed so
+           narrow/mobile screens fall back to Streamlit's normal behavior:
+           each graph gets its own full-width row, stacked one below the
+           other, which keeps titles/axis text readable instead of cramped
+           into a half-width column. Desktop/tablet widths (above 640px,
+           outside this media query) are unaffected and stay 2-column via
+           the plain st.columns(2) call in the Python code. */
 
         /* ---- Input grids: every paired-input row across Steam Explorer,
            Rankine and Brayton (each wrapped in a st.container(key="igrid_*"))
@@ -1854,7 +1869,13 @@ dome = generate_dome(fluid)
 plot_config = {
     'displayModeBar': True,
     'responsive': True,
-    'scrollZoom': True
+    'scrollZoom': True,
+    'displaylogo': False,
+    'modeBarButtonsToRemove': [
+        'zoom2d', 'pan2d', 'select2d', 'lasso2d',
+        'zoomIn2d', 'zoomOut2d', 'resetScale2d',
+        'hoverClosestCartesian', 'hoverCompareCartesian', 'toImage'
+    ]
 }
 layout_common = dict(
     template='plotly_dark' if _is_dark() else 'plotly_white',
@@ -1876,7 +1897,7 @@ layout_common = dict(
 layout_common_grid = dict(layout_common)
 layout_common_grid.update(
     height=340,
-    margin=dict(l=42, r=18, t=48, b=42),
+    margin=dict(l=52, r=20, t=48, b=44),
     legend=dict(
         orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1,
         font=dict(size=9, color=tc()['label_text'])
@@ -3944,6 +3965,7 @@ with g1:
     pv_layout = layout_common_grid.copy()
     pv_layout.update(
         title='P-v Diagram',
+        uirevision='fig1_pv',
         xaxis=dict(type='log', title=axis_title('Specific Volume', 'V'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text'])),
         yaxis=dict(type='log', title=axis_title('Pressure', 'P'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text']))
     )
@@ -3987,6 +4009,7 @@ with g2:
     ts_layout = layout_common_grid.copy()
     ts_layout.update(
         title='T-s Diagram',
+        uirevision='fig2_ts',
         xaxis=dict(type='linear', title=axis_title('Entropy', 'S'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text'])),
         yaxis=dict(type='linear', title=axis_title('Temperature', 'T'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text']))
     )
@@ -4030,6 +4053,7 @@ with g3:
     tv_layout = layout_common_grid.copy()
     tv_layout.update(
         title='T-v Diagram',
+        uirevision='fig3_tv',
         xaxis=dict(type='log', title=axis_title('Specific Volume', 'V'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text'])),
         yaxis=dict(type='linear',title=axis_title('Temperature', 'T'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text']))
     )
@@ -4072,6 +4096,7 @@ with g4:
     ph_layout = layout_common_grid.copy()
     ph_layout.update(
         title='P-h Diagram',
+        uirevision='fig4_ph',
         xaxis=dict(title=axis_title('Enthalpy', 'H'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text'])),
         yaxis=dict(type='log', title=axis_title('Pressure', 'P'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text']))
     )
@@ -4116,6 +4141,7 @@ with g5:
     th_layout = layout_common_grid.copy()
     th_layout.update(
         title='T-h Diagram',
+        uirevision='fig5_th',
         xaxis=dict(title=axis_title('Enthalpy', 'H'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text'])),
         yaxis=dict(title=axis_title('Temperature', 'T'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text']))
     )
@@ -4178,6 +4204,7 @@ with g6:
     h_s_layout = layout_common_grid.copy()
     h_s_layout.update(
         title='Mollier Diagram (h-s)',
+        uirevision='fig6_hs',
         xaxis=dict(title=axis_title('Entropy', 'S'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text'])),
         yaxis=dict(title=axis_title('Enthalpy', 'H'), showgrid=True, gridcolor=tc()['grid'], showline=True, linecolor=tc()['label_text'], mirror=True, tickfont=dict(color=tc()['label_text']), title_font=dict(color=tc()['label_text']))
     )
