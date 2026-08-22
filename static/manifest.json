@@ -1,1 +1,25 @@
-
+{
+  "name": "ThermoLab",
+  "short_name": "ThermoLab",
+  "description": "ThermoLab is a steam and fluid property explorer with Rankine and Brayton power cycle simulation, built for engineers and students.",",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/app/static/launchericon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/static/launchericon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
