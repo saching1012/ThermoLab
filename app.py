@@ -593,24 +593,11 @@ _DARK_CSS = """
         font-size: 0.9em;
     }
 
-    /* Table styling — text color must be set explicitly here, otherwise it
-       falls back to Streamlit's base (light-theme) table text color, which
-       is nearly black and disappears against this dark background. */
+    /* Table styling */
     div[data-testid="stTable"] {
         background: #1c150f;
         border: 1px solid #3a2f24;
         border-radius: 8px;
-    }
-    div[data-testid="stTable"] table {
-        color: #e8dfd2 !important;
-    }
-    div[data-testid="stTable"] thead th {
-        background: #241b12 !important;
-        color: #f2ece0 !important;
-        font-weight: 700 !important;
-    }
-    div[data-testid="stTable"] tbody tr:nth-child(even) {
-        background: rgba(255, 255, 255, 0.03) !important;
     }
 
     /* ============ NAVIGATION SIDEBAR (separate from Control Panel) ============ */
@@ -1355,24 +1342,6 @@ _RESPONSIVE_CSS = """
 
         div.stButton > button { padding: 0.4rem 0.6rem; font-size: 0.92em; }
 
-        /* Icon-only tap targets (hamburger, previous arrow, sidebar close)
-           are fine at a compact 32px on desktop with a mouse, but that's
-           below the ~44px minimum recommended for a finger on a phone.
-           Bump them up on mobile only. */
-        .st-key-burger_toggle button, .st-key-wiz_prev_top button,
-        .st-key-sidebar_close_x button {
-            min-width: 44px !important;
-            min-height: 44px !important;
-        }
-
-        /* Number input +/- step buttons default to a tiny ~28px hit area —
-           too small to reliably tap on a phone. Widen them on mobile only. */
-        button[data-testid="stNumberInputStepDown"],
-        button[data-testid="stNumberInputStepUp"] {
-            min-width: 40px !important;
-            min-height: 40px !important;
-        }
-
         /* Sidebar becomes a narrow drawer on phones — never wider than the
            screen, and never so wide it hides everything behind it. */
         section[data-testid="stSidebar"] {
@@ -1583,7 +1552,7 @@ def render_cycle_type_select():
 def render_welcome():
     render_header("Welcome")
     st.markdown("### What do you want to work on?")
-    st.caption("Tap an option to continue")
+    st.caption("Tap a option to continue")
     hc1, hc2 = st.container(key="iconrow_welcome").columns(2, gap="small")
     with hc1:
         st.markdown(f"""
@@ -1655,8 +1624,8 @@ def render_topbar(active_label):
 def render_footer():
     st.markdown(
         '<div class="app-footer">'
-        '<div>🔥 ThermoLab is designed to help you understand the behavior of fluids.</div>'
-        f'<div><a href="?restart=1&{_theme_qs()}" target="_self">🏠 Start Over</a></div>'
+        '<div>🔥 ThermoLab Porject is desgined to understand the nature of fluids.</div>'
+        f'<div><a href="?restart=1&{_theme_qs()}" target="_self">🏠 Start Over</a> &nbsp;·&nbsp;'
         '</div>',
         unsafe_allow_html=True
     )
@@ -1699,7 +1668,7 @@ def render_nav_sidebar():
             st.caption("**Stuck on a calculation?** Check that your pressures and "
                        "temperatures stay within each fluid's valid range.")
             if st.button("📧 Contact support", key="sb_contact_support", use_container_width=True):
-                st.toast("This option is under progress", icon="📧")
+                st.toast("This is option under progess", icon="📧")
         with st.expander("ℹ️ About this app"):
             st.caption("**Steam & Cycle Simulation Lab**  \nVersion 1.0.0")
             st.caption("Built with Streamlit, Plotly &amp; CoolProp.")
@@ -1883,25 +1852,14 @@ def generate_dome(fluid):
     return data
 dome = generate_dome(fluid)
 plot_config = {
-    # This is a mobile app, not a desktop website — the zoom/pan/autoscale
-    # modebar is mouse-oriented, tiny on a touchscreen, and mostly redundant
-    # once pinch gestures exist; scrollZoom maps to pinch-to-zoom on touch,
-    # which "traps" a swipe meant to scroll the page inside the chart
-    # instead. Both are switched off so charts behave like a normal part of
-    # the page: tap a point for its tooltip, swipe past the chart to scroll.
-    'displayModeBar': False,
+    'displayModeBar': True,
     'responsive': True,
-    'scrollZoom': False,
-    'doubleClick': False,
+    'scrollZoom': True
 }
 layout_common = dict(
     template='plotly_dark' if _is_dark() else 'plotly_white',
     height=600,  
     hovermode='closest',
-    # A finger is far less precise than a mouse pointer, so the default
-    # ~20px hover-detection radius is too tight for tap-to-see-tooltip on a
-    # phone — widen it so a tap near a curve/marker still registers.
-    hoverdistance=40,
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
     font=dict(color=tc()['label_text'], size=12),
