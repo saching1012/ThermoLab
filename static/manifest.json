@@ -16,7 +16,7 @@
       "purpose": "any"
     },
     {
-      "src": "/app/static/launchericon-512x512.png",
+      "src": "https://saching1012.github.io/ThermoLab/static/launchericon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
