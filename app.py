@@ -5,11 +5,6 @@ import plotly.graph_objects as go
 import functools
 import io
 
-st.set_page_config(
-    page_title="ThermoLab",
-    page_icon="https://raw.githubusercontent.com/saching1012/ThermoLab/main/chemical.png"
-)
-
 from CoolProp.CoolProp import PhaseSI, PropsSI
 st.set_page_config(
     page_title="ThermoLab",
