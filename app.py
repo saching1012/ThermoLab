@@ -7,7 +7,7 @@ import io
 
 st.set_page_config(
     page_title="Thermolab",
-    page_icon="https://https://github.com/saching1012/ThermoLab/edit/main/app.py"
+    page_icon="https://github.com/saching1012/ThermoLab/blob/main/chemical.png"
 )
 
 from CoolProp.CoolProp import PhaseSI, PropsSI
