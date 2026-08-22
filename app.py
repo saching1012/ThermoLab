@@ -29,25 +29,6 @@ components.html(
     """,
     height=0
 )
-if st.query_params.get("theme") not in ("dark", "light"):
-    import streamlit.components.v1 as components
-    components.html(
-        """
-        <script>
-        try {
-            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            var wanted = prefersDark ? 'dark' : 'light';
-            var url = new URL(window.parent.location.href);
-            if (url.searchParams.get('theme') !== wanted) {
-                url.searchParams.set('theme', wanted);
-                window.parent.location.replace(url.toString());
-            }
-        } catch (e) {}
-        </script>
-        """,
-        height=0,
-        width=0,
-    )
 def is_valid_number(value):
 
     return (
@@ -184,6 +165,7 @@ def cached_propsi(output, i1, v1, i2, v2, fluid):
     
     return PropsSI(output, i1, float(v1), i2, float(v2), fluid)
 
+@st.cache_data(show_spinner=False)
 def build_isobar_path(P, T_start, T_end, fluid_name, n_seg=60):
     
     Ss_, Ts_, Hs_ = [], [], []
@@ -277,6 +259,7 @@ def fmt(value, digits=5):
 
     except:
         return "N/A"
+@st.cache_data(show_spinner=False)
 def has_saturation_dome(fluid):
     try:
         PropsSI('Tcrit', fluid)
@@ -458,13 +441,12 @@ def unit_number_input(label, kind, min_value, max_value, value, step, key, help=
 
     def _sync_shared_unit(_unit_key=unit_key, _field_unit_key=field_unit_key):
         st.session_state[_unit_key] = st.session_state[_field_unit_key]
-    c_field, c_unit = st.container(key=f"unitrow_{key}").columns([2.3, 1])
+    c_field, c_unit = st.container(key=f"unitrow_{key}").columns([62, 38])
 
     with c_unit:
-        st.markdown('<div class="unit-dd-spacer"></div>', unsafe_allow_html=True)
         chosen_unit = st.selectbox(
-            f"{label} unit", unit_options, key=field_unit_key,
-            on_change=_sync_shared_unit, label_visibility="collapsed"
+            "Unit", unit_options, key=field_unit_key,
+            on_change=_sync_shared_unit, label_visibility="visible"
         )
     if chosen_unit != st.session_state[prev_key]:
         cur_canon = _to_canonical(st.session_state[key], st.session_state[prev_key], kind)
@@ -489,10 +471,18 @@ def unit_number_input(label, kind, min_value, max_value, value, step, key, help=
     return _to_canonical(entered, chosen_unit, kind)
 if "app_theme" not in st.session_state:
     _theme_qp = st.query_params.get("theme")
-    # "dark" here is only a last-resort fallback for the brief moment before
-    # the system-theme redirect above completes (or if JS is unavailable) —
-    # once ?theme= is set, that value always wins.
-    st.session_state.app_theme = _theme_qp if _theme_qp in ("dark", "light") else "dark"
+    if _theme_qp in ("dark", "light"):
+        st.session_state.app_theme = _theme_qp
+    else:
+        # No explicit choice yet (no toggle used this session). Follow the
+        # browser/OS preference Streamlit itself already resolved — this is
+        # synchronous on the very first run, no JS/reload/flash needed.
+        _system_theme = None
+        try:
+            _system_theme = st.context.theme.type
+        except Exception:
+            pass
+        st.session_state.app_theme = _system_theme if _system_theme in ("dark", "light") else "dark"
 
 def _toggle_theme():
     st.session_state.app_theme = "light" if st.session_state.app_theme == "dark" else "dark"  
@@ -791,6 +781,16 @@ _DARK_CSS = """
         padding: 3px 9px; border-radius: 999px; margin: 2px 4px 2px 0;
     }
     .dash-card .cta { margin-top: 16px; color: #00C2FF; font-size: 0.85em; font-weight: 600; }
+    /* Chart cards: give every plotly chart (steam + cycle diagrams) a
+       consistent card treatment instead of floating bare against the
+       page background, matching the dashboard tiles' visual language. */
+    div[class*="st-key-fig"] {
+        background: linear-gradient(160deg, #1d160f 0%, #20180f 100%);
+        border: 1px solid #3a2c1c;
+        border-radius: 14px;
+        padding: 10px 8px 2px 8px;
+        margin-bottom: 14px;
+    }
     /* Compact icon-tile variant: icon + name only, no paragraph/tags/cta —
        sized like a real mobile app icon tile, not a big content card.
        Capped max-width + auto margins keep it from stretching to fill a
@@ -1204,6 +1204,14 @@ _LIGHT_CSS = """
         padding: 3px 9px; border-radius: 999px; margin: 2px 4px 2px 0;
     }
     .dash-card .cta { margin-top: 16px; color: #b45309; font-size: 0.85em; font-weight: 600; }
+    /* Chart cards: matches the dark theme treatment above. */
+    div[class*="st-key-fig"] {
+        background: linear-gradient(160deg, #fffdf8 0%, #fbf1de 100%);
+        border: 1px solid #e3d2ad;
+        border-radius: 14px;
+        padding: 10px 8px 2px 8px;
+        margin-bottom: 14px;
+    }
     /* Compact icon-tile variant: icon + name only, no paragraph/tags/cta —
        sized like a real mobile app icon tile, not a big content card.
        Capped max-width + auto margins keep it from stretching to fill a
@@ -1320,6 +1328,18 @@ st.markdown("""
     /* Content used to start below Streamlit's own header bar; reclaim that
        space now that the header itself is hidden. */
     .block-container { padding-top: 1.2rem !important; }
+    /* Two-finger pinch-to-zoom on charts: without this, the browser's own
+       page-zoom gesture competes with Plotly's internal zoom handling for
+       the same touch gesture and usually wins, so pinching over a chart
+       zoomed the whole page instead of rescaling the data. Scoping
+       touch-action:none to just the plot area lets Plotly's own touch
+       handler fully own that gesture; the rest of the page still scrolls
+       normally when touched outside a chart.
+    */
+    div[class*="st-key-fig"] .js-plotly-plot,
+    div[class*="st-key-fig"] .js-plotly-plot .svg-container {
+        touch-action: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 _RESPONSIVE_CSS = """
@@ -1430,10 +1450,10 @@ _RESPONSIVE_CSS = """
            ratio — higher specificity (extra :first-child/:last-child) and
            later in the cascade, so it wins over the rule above. */
         div[class*="st-key-unitrow_"] [data-testid="stColumn"]:first-child {
-            flex: 0 0 69.7% !important; max-width: 69.7% !important; width: 69.7% !important;
+            flex: 0 0 62% !important; max-width: 62% !important; width: 62% !important;
         }
         div[class*="st-key-unitrow_"] [data-testid="stColumn"]:last-child {
-            flex: 0 0 30.3% !important; max-width: 30.3% !important; width: 30.3% !important;
+            flex: 0 0 38% !important; max-width: 38% !important; width: 38% !important;
         }
 
         /* ---- Steam / Cycle / Rankine / Brayton icon-tile rows: force a
@@ -1913,11 +1933,11 @@ layout_common = dict(
 )
 layout_common_grid = dict(layout_common)
 layout_common_grid.update(
-    height=340,
-    margin=dict(l=52, r=20, t=48, b=44),
+    height=380,
+    margin=dict(l=54, r=20, t=42, b=88),
     legend=dict(
-        orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1,
-        font=dict(size=9, color=tc()['label_text'])
+        orientation='h', yanchor='top', y=-0.24, xanchor='center', x=0.5,
+        font=dict(size=10, color=tc()['label_text'])
     ),
 )
 if hasattr(st, "fragment"):
