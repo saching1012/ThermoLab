@@ -12,7 +12,23 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
-st.markdown('<link rel="manifest" href="https://saching1012.github.io/ThermoLab/static/manifest.json">', unsafe_allow_html=True)
+import streamlit.components.v1 as components
+components.html(
+    """
+    <script>
+    (function() {
+        var link = window.parent.document.querySelector('link[rel="manifest"]');
+        if (!link) {
+            link = window.parent.document.createElement('link');
+            link.rel = 'manifest';
+            window.parent.document.head.appendChild(link);
+        }
+        link.href = 'https://saching1012.github.io/ThermoLab/static/manifest.json';
+    })();
+    </script>
+    """,
+    height=0
+)
 if st.query_params.get("theme") not in ("dark", "light"):
     import streamlit.components.v1 as components
     components.html(
