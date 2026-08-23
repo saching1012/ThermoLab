@@ -10,13 +10,6 @@ st.set_page_config(
     page_title="ThermoLab",
     page_icon="🔥",
     layout="wide",
-    # "expanded" here (not "collapsed") is deliberate: our own CSS below
-    # fully controls the drawer's open/closed state via a CSS transform on
-    # every rerun (see _sidebar_open branch), regardless of what Streamlit
-    # thinks its native collapsed/expanded state is. Leaving Streamlit set
-    # to "collapsed" meant it ran its OWN collapse animation on the sidebar
-    # first, which our override then had to fight and win a beat later —
-    # that race is what caused the sidebar to visibly flicker on open/close.
     initial_sidebar_state="expanded"
 )
 import streamlit.components.v1 as components
@@ -24,9 +17,6 @@ components.html(
     """
     <script>
     try {
-        // CSS applies the instant it's parsed — no timing gap where the
-        // badge is briefly visible before JS gets a chance to run, unlike
-        // a setInterval-only approach.
         var css = 'a[href*="streamlit.io"], a[href*="github.com"] ' +
                   '{ display: none !important; visibility: hidden !important; }';
         var styleTag = window.top.document.createElement('style');
@@ -36,16 +26,10 @@ components.html(
         function hideCloudBadge() {
             var sel = 'a[href*="streamlit.io"], a[href*="github.com"]';
             window.top.document.querySelectorAll(sel).forEach(function(el) {
-                // Only the small floating badge/link, never content the
-                // app itself might legitimately render.
                 el.style.setProperty('display', 'none', 'important');
             });
         }
         hideCloudBadge();
-        // A MutationObserver (rather than a fixed-count interval that gave
-        // up after 10 seconds) keeps watching for as long as the app is
-        // open, so the badge stays hidden on every page/rerun, not just
-        // during the first few seconds after initial load.
         var observer = new MutationObserver(hideCloudBadge);
         observer.observe(window.top.document.body, { childList: true, subtree: true });
     } catch (e) {}
