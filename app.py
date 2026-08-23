@@ -10,13 +10,19 @@ st.set_page_config(
     page_title="ThermoLab",
     page_icon="🔥",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 import streamlit.components.v1 as components
 components.html(
     """
     <script>
     try {
+        var css = 'a[href*="streamlit.io"], a[href*="github.com"] ' +
+                  '{ display: none !important; visibility: hidden !important; }';
+        var styleTag = window.top.document.createElement('style');
+        styleTag.appendChild(window.top.document.createTextNode(css));
+        window.top.document.head.appendChild(styleTag);
+
         function hideCloudBadge() {
             var sel = 'a[href*="streamlit.io"], a[href*="github.com"]';
             window.top.document.querySelectorAll(sel).forEach(function(el) {
@@ -24,12 +30,8 @@ components.html(
             });
         }
         hideCloudBadge();
-        var tries = 0;
-        var iv = setInterval(function() {
-            hideCloudBadge();
-            tries++;
-            if (tries > 20) clearInterval(iv);
-        }, 500);
+        var observer = new MutationObserver(hideCloudBadge);
+        observer.observe(window.top.document.body, { childList: true, subtree: true });
     } catch (e) {}
     </script>
     """,
@@ -556,6 +558,16 @@ _DARK_CSS = """
     [data-baseweb="select"] div {
         color: #f2ece0 !important;
     }
+    /* Widget chrome (number inputs, selects, text inputs) — force a dark
+       background behind the light text above. Without this, the input's
+       background falls back to whatever the browser/OS natively renders
+       (which can be LIGHT if the OS is in light mode even though our app
+       theme is dark), leaving light text invisible on a light box. */
+    [data-baseweb="input"], [data-baseweb="select"] > div,
+    [data-baseweb="base-input"] {
+        background: #221a12 !important;
+        border-color: #4a3820 !important;
+    }
     [data-baseweb="popover"], [data-baseweb="menu"] {
         background: #221a12 !important;
         color: #e8dfd2 !important;
@@ -580,7 +592,7 @@ _DARK_CSS = """
     .st-key-burger_toggle button, .st-key-wiz_prev_top button {
         background: transparent !important;
         border: 1px solid transparent !important;
-        font-size: 1.25em !important;
+        font-size: 1.7em !important;
         color: #e8dfd2 !important;
         box-shadow: none !important;
         padding: 0 !important;
@@ -990,7 +1002,7 @@ _LIGHT_CSS = """
     .st-key-burger_toggle button, .st-key-wiz_prev_top button {
         background: transparent !important;
         border: 1px solid transparent !important;
-        font-size: 1.25em !important;
+        font-size: 1.7em !important;
         color: #4a3826 !important;
         box-shadow: none !important;
         padding: 0 !important;
@@ -1351,24 +1363,32 @@ st.markdown("""
     #stDeployButton { display: none; }
     /* Content used to start below Streamlit's own header bar; reclaim that
        space now that the header itself is hidden. */
-    .block-container { padding-top: 1.2rem !important; }
-    /* Two-finger pinch-to-zoom on charts: without this, the browser's own
-       page-zoom gesture competes with Plotly's internal zoom handling for
-       the same touch gesture and usually wins, so pinching over a chart
-       zoomed the whole page instead of rescaling the data. Scoping
-       touch-action:none to just the plot area lets Plotly's own touch
-       handler fully own that gesture; the rest of the page still scrolls
-       normally when touched outside a chart.
-    */
-    div[class*="st-key-fig"] .js-plotly-plot,
-    div[class*="st-key-fig"] .js-plotly-plot .svg-container {
-        touch-action: none !important;
-    }
+    .block-container { padding-top: 0 !important; }
+    /* Two-finger pinch-to-zoom on charts: NOTE — this used to force
+       touch-action:none over the whole chart area so Plotly's own zoom
+       gesture wouldn't fight the browser's page-zoom gesture. Now that
+       scrollZoom is off in plot_config (see plot_config below), Plotly no
+       longer tries to capture that gesture at all, so this restriction was
+       actively blocking normal scroll swipes anywhere a finger started
+       over a chart — that was the actual cause of "can't scroll around the
+       graph area". Removed; the chart area now behaves like any other part
+       of the page for scrolling, and tap-for-tooltip still works fine. */
 </style>
 """, unsafe_allow_html=True)
 _RESPONSIVE_CSS = """
     .st-key-topnav {
         position: sticky; top: 0; z-index: 999999;
+        /* Nav bar now sits flush at the extreme top edge of the app (the
+           page's own top padding was removed) — this small internal
+           padding keeps the icons/title from touching the physical screen
+           edge, without leaving a gap above the bar itself. */
+        padding-top: 10px !important;
+    }
+    /* The page's own top padding moved into the nav bar above, so give the
+       first block of real content back a bit of breathing room under the
+       now-flush nav bar. */
+    .block-container > div:nth-child(2) {
+        margin-top: 8px;
     }
     /* Consistent breathing room between stacked input-grid rows, at any
        viewport width. */
@@ -1417,7 +1437,7 @@ _RESPONSIVE_CSS = """
         .app-header .nav-pill-row a { padding: 6px 10px; font-size: 0.8em; }
         /* Sit flush at the very top on mobile, like a native app bar,
            instead of floating below a visible gap. */
-        .block-container { padding-top: 0.3rem !important; }
+        .block-container { padding-top: 0 !important; }
         /* Bigger, easier-to-tap Prev/hamburger buttons — native apps give
            icon-only top-bar buttons a real touch target, not a cramped one. */
         .st-key-wiz_prev_top button, .st-key-burger_toggle button {
@@ -1942,20 +1962,25 @@ def generate_dome(fluid):
     return data
 dome = generate_dome(fluid)
 plot_config = {
-    'displayModeBar': True,
+    # This is a mobile app, not a desktop website — scrollZoom maps to
+    # pinch-to-zoom on touch, which traps a swipe meant to scroll the page
+    # inside the chart instead; the modebar is mouse-oriented and mostly
+    # redundant here. Both are off so charts behave like a normal part of
+    # the page: tap a point for its tooltip, swipe past the chart to scroll.
+    'displayModeBar': False,
     'responsive': True,
-    'scrollZoom': True,
+    'scrollZoom': False,
+    'doubleClick': False,
     'displaylogo': False,
-    'modeBarButtonsToRemove': [
-        'zoom2d', 'pan2d', 'select2d', 'lasso2d',
-        'zoomIn2d', 'zoomOut2d', 'resetScale2d',
-        'hoverClosestCartesian', 'hoverCompareCartesian', 'toImage'
-    ]
 }
 layout_common = dict(
     template='plotly_dark' if _is_dark() else 'plotly_white',
     height=600,  
     hovermode='closest',
+    # A finger is far less precise than a mouse pointer, so the default
+    # ~20px hover-detection radius is too tight for tap-to-see-tooltip on a
+    # phone — widen it so a tap near a curve/marker still registers.
+    hoverdistance=40,
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
     font=dict(color=tc()['label_text'], size=12),
@@ -2280,17 +2305,17 @@ def _render_power_cycle_analysis_body():
                         text=f"Q = {conv(Q_boiler,'H'):.0f} {disp_unit('H')}",
                         showarrow=True, arrowhead=5, ax=-40, ay=-40,
                         font=dict(color='#FF3CAC', size=12),
-                        bgcolor='rgba(0,0,0,0.6)'
+                        bgcolor='rgba(0,0,0,0.65)'
                     )
                     fig_rk_ts.add_annotation(x=(s3k+s4k)/2, y=(T3c+T4c)/2-40, text=f"W = {conv(W_turbine,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=-60, ay=0,
-                                              font=dict(color='orange', size=12), bgcolor='rgba(0,0,0,0.6)')
+                                              font=dict(color='orange', size=12), bgcolor='rgba(0,0,0,0.65)')
                     fig_rk_ts.add_annotation(x=(s4k+s1k)/2, y=(T4c+T1c)/2, text=f"Q = {conv(Q_condenser,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=0, ay=-30,
-                                              font=dict(color='#FF3CAC', size=12), bgcolor='rgba(0,0,0,0.6)')
+                                              font=dict(color='#FF3CAC', size=12), bgcolor='rgba(0,0,0,0.65)')
                     fig_rk_ts.add_annotation(x=(s1k+s2k)/2, y=(T1c+T2c)/2, text=f"W = {conv(W_pump,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=-60, ay=5,
-                                              font=dict(color='#39FF14', size=12), bgcolor='rgba(0,0,0,0.6)')
+                                              font=dict(color='#39FF14', size=12), bgcolor='rgba(0,0,0,0.65)')
                     if np.isfinite(x_4):
                         fig_rk_ts.add_annotation(
                             x=s4k, y=T4c,
@@ -2363,16 +2388,16 @@ def _render_power_cycle_analysis_body():
                         )
                     fig_rk_ph.add_annotation(x=(h2k+h3k)/2, y=P_boiler_bar, text=f"Q = {conv(Q_boiler,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=0, ay=-35,
-                                              font=dict(color='yellow', size=12), bgcolor='rgba(0,0,0,0.6)')
+                                              font=dict(color='yellow', size=12), bgcolor='rgba(0,0,0,0.65)')
                     fig_rk_ph.add_annotation(x=(h3k+h4k)/2, y=(P_boiler_bar*P_cond_bar)**0.5+16, text=f"W = {conv(W_turbine,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=-60, ay=-20,
-                                              font=dict(color='orange', size=12), bgcolor='rgba(0,0,0,0.6)')
+                                              font=dict(color='orange', size=12), bgcolor='rgba(0,0,0,0.65)')
                     fig_rk_ph.add_annotation(x=(h4k+h1k)/2, y=P_cond_bar, text=f"Q = {conv(Q_condenser,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=0, ay=-40,
-                                              font=dict(color='#FF3CAC', size=12), bgcolor='rgba(0,0,0,0.6)')
+                                              font=dict(color='#FF3CAC', size=12), bgcolor='rgba(0,0,0,0.65)')
                     fig_rk_ph.add_annotation(x=(h1k+h2k)/2, y=(P_boiler_bar*P_cond_bar)**0.5+40, text=f"W = {conv(W_pump,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=-60, ay=-15,
-                                              font=dict(color='#39FF14', size=12), bgcolor='rgba(0,0,0,0.6)')
+                                              font=dict(color='#39FF14', size=12), bgcolor='rgba(0,0,0,0.65)')
                     rk_ph_layout = layout_common.copy()
                     rk_ph_layout.update(
                         title='P-h Diagram',
