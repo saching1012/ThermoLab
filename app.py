@@ -16,6 +16,29 @@ import streamlit.components.v1 as components
 components.html(
     """
     <script>
+    try {
+        function hideCloudBadge() {
+            var sel = 'a[href*="streamlit.io"], a[href*="github.com"]';
+            window.top.document.querySelectorAll(sel).forEach(function(el) {
+                el.style.setProperty('display', 'none', 'important');
+            });
+        }
+        hideCloudBadge();
+        var tries = 0;
+        var iv = setInterval(function() {
+            hideCloudBadge();
+            tries++;
+            if (tries > 20) clearInterval(iv);
+        }, 500);
+    } catch (e) {}
+    </script>
+    """,
+    height=0,
+    width=0,
+)
+components.html(
+    """
+    <script>
     (function() {
         var link = window.parent.document.querySelector('link[rel="manifest"]');
         if (!link) {
@@ -27,7 +50,8 @@ components.html(
     })();
     </script>
     """,
-    height=0
+    height=0,
+    width=0,
 )
 def is_valid_number(value):
 
@@ -1387,14 +1411,28 @@ _RESPONSIVE_CSS = """
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
         }
-        .app-header .brand .em { font-size: 1.1em; }
-        .app-header .brand .txt { font-size: 0.8em; }
-        .app-header .brand .txt .active { font-size: 0.62em; }
+        .app-header .brand .em { font-size: 1.5em; }
+        .app-header .brand .txt { font-size: 1.05em; }
+        .app-header .brand .txt .active { font-size: 0.72em; }
         .app-header .nav-pill-row a { padding: 6px 10px; font-size: 0.8em; }
+        /* Sit flush at the very top on mobile, like a native app bar,
+           instead of floating below a visible gap. */
+        .block-container { padding-top: 0.3rem !important; }
+        /* Bigger, easier-to-tap Prev/hamburger buttons — native apps give
+           icon-only top-bar buttons a real touch target, not a cramped one. */
+        .st-key-wiz_prev_top button, .st-key-burger_toggle button {
+            min-width: 40px !important; min-height: 40px !important;
+            font-size: 1.15em !important;
+        }
 
         .hero-wrap { padding: 20px 16px 12px 16px; border-radius: 14px; }
         .hero-title { font-size: 1.55em; }
         .hero-sub { font-size: 0.9em; }
+        .app-footer {
+            flex-direction: column !important; align-items: center !important;
+            text-align: center !important; gap: 10px !important;
+        }
+        .app-footer a { font-size: 1.05em; padding: 4px 0; display: inline-block; }
         .hero-eyebrow { font-size: 0.66em; letter-spacing: 1.5px; padding: 3px 9px; }
 
         .dash-card { padding: 16px 14px; min-height: unset; }
@@ -1676,7 +1714,7 @@ def render_topbar(active_label):
 def render_footer():
     st.markdown(
         '<div class="app-footer">'
-        '<div>🔥 ThermoLab Porject is desgined to understand the nature of fluids.</div>'
+        '<div>🔥 ThermoLab Project is designed to understand the nature of fluids.</div>'
         f'<div><a href="?restart=1&{_theme_qs()}" target="_self">🏠 Start Over</a> &nbsp;·&nbsp;'
         '</div>',
         unsafe_allow_html=True
@@ -1933,10 +1971,10 @@ layout_common = dict(
 )
 layout_common_grid = dict(layout_common)
 layout_common_grid.update(
-    height=380,
+    height=480,
     margin=dict(l=54, r=20, t=42, b=88),
     legend=dict(
-        orientation='h', yanchor='top', y=-0.24, xanchor='center', x=0.5,
+        orientation='h', yanchor='top', y=-0.2, xanchor='center', x=0.5,
         font=dict(size=10, color=tc()['label_text'])
     ),
 )
