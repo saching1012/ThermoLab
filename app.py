@@ -838,22 +838,20 @@ def render_welcome():
     with hc1:
         st.markdown(f"""
         <a class="dash-card-link" href="?mode=explorer&{_theme_qs()}" target="_self">
-          <div class="dash-card-photo" style="background-image:url('{_fluid_photo}')">
-              <div class="card-label">
-                  <div class="icon">🌡️</div>
-                  <div class="txt"><h3>Fluids</h3><p>Explore thermodynamic properties</p></div>
-              </div>
+          <div class="dash-card dash-card-icon">
+              <div class="icon">🌡️</div>
+              <h3>Fluids</h3>
+              <p>Explore thermodynamic properties</p>
           </div>
         </a>
         """, unsafe_allow_html=True)
     with hc2:
         st.markdown(f"""
         <a class="dash-card-link" href="?mode=cycles&{_theme_qs()}" target="_self">
-          <div class="dash-card-photo" style="background-image:url('{_cycle_photo}')">
-              <div class="card-label">
-                  <div class="icon">⚡</div>
-                  <div class="txt"><h3>Cycle</h3><p>Analyze power cycles</p></div>
-              </div>
+          <div class="dash-card dash-card-icon">
+              <div class="icon">⚡</div>
+              <h3>Cycle</h3>
+              <p>Analyze power cycles</p>
           </div>
         </a>
         """, unsafe_allow_html=True)
