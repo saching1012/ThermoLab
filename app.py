@@ -833,38 +833,53 @@ def render_welcome():
     st.markdown("### What do you want to work on?")
     st.caption("Tap a card to continue")
     hc1, hc2 = st.container(key="iconrow_welcome").columns(2, gap="small")
+
+    # Photos (base64 data URIs) and per-theme colors used in the card HTML
     _fluid_photo = _img_data_uri(FLUID_IMG_PATH)
     _cycle_photo = _img_data_uri(CYCLE_IMG_PATH)
+    _card_bg = "#1d160f" if _is_dark() else "#fffdf8"
+    _card_border = "#3a2c1c" if _is_dark() else "#e3d2ad"
+    _card_title_c = "#f2f6fa" if _is_dark() else "#17120a"
+    _card_sub_c = "#b3a690" if _is_dark() else "#5c4f3d"
+
     with hc1:
-        st.markdown(f"""
-        <a class="dash-card-link" href="?mode=explorer&{_theme_qs()}" target="_self">
-          <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
-              <div class="dash-card-v2-img" style="background-image:url('{_fluid_photo}')"></div>
-              <div class="dash-card-v2-body">
-                  <div class="icon">🌡️</div>
-                  <div class="txt">
-                      <h3 style="color:{_card_title_c};">Fluids</h3>
-                      <p style="color:{_card_sub_c};">Explore thermodynamic properties</p>
+        st.markdown(
+            f"""
+            <a class="dash-card-link" href="?mode=explorer&{_theme_qs()}" target="_self">
+              <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
+                  <div class="dash-card-v2-img" style="background-image:url('{_fluid_photo}')"></div>
+                  <div class="dash-card-v2-body">
+                      <div class="icon">🌡️</div>
+                      <div class="txt">
+                          <h3 style="color:{_card_title_c};margin:0;">Fluids</h3>
+                          <p style="color:{_card_sub_c};margin:2px 0 0 0;">Explore thermodynamic properties</p>
+                      </div>
                   </div>
               </div>
-          </div>
-        </a>
-        """, unsafe_allow_html=True)
+            </a>
+            """,
+            unsafe_allow_html=True,
+        )
+
     with hc2:
-        st.markdown(f"""
-        <a class="dash-card-link" href="?mode=cycles&{_theme_qs()}" target="_self">
-          <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
-              <div class="dash-card-v2-img" style="background-image:url('{_cycle_photo}')"></div>
-              <div class="dash-card-v2-body">
-                  <div class="icon">⚡</div>
-                  <div class="txt">
-                      <h3 style="color:{_card_title_c};">Cycle</h3>
-                      <p style="color:{_card_sub_c};">Analyze power cycles</p>
+        st.markdown(
+            f"""
+            <a class="dash-card-link" href="?mode=cycles&{_theme_qs()}" target="_self">
+              <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
+                  <div class="dash-card-v2-img" style="background-image:url('{_cycle_photo}')"></div>
+                  <div class="dash-card-v2-body">
+                      <div class="icon">⚡</div>
+                      <div class="txt">
+                          <h3 style="color:{_card_title_c};margin:0;">Cycle</h3>
+                          <p style="color:{_card_sub_c};margin:2px 0 0 0;">Analyze power cycles</p>
+                      </div>
                   </div>
               </div>
-          </div>
-        </a>
-        """, unsafe_allow_html=True)
+            </a>
+            """,
+            unsafe_allow_html=True,
+        )
+
     render_footer()
 def render_fluid_select():
     render_header("Choose Working Fluid")
