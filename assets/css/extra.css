@@ -1,0 +1,113 @@
+    /* ---- Standard mobile typography ---- */
+    html, body, .stApp, .stApp * {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                     "Helvetica Neue", Arial, sans-serif !important;
+    }
+    .stApp { font-size: 16px; }
+    h1, h2, h3 { text-transform: none !important; letter-spacing: normal !important; }
+    h1 { font-size: 1.5em !important; font-weight: 700 !important; }
+    h2 { font-size: 1.25em !important; font-weight: 700 !important; }
+    h3 { font-size: 1.08em !important; font-weight: 600 !important; }
+    p, li, span, label, .stMarkdown, [data-testid="stMarkdownContainer"] {
+        font-size: 1em; line-height: 1.5;
+    }
+    [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p { font-size: 0.86em !important; }
+    div.stButton > button, div[data-testid="stDownloadButton"] > button { font-size: 0.95em !important; }
+    [data-testid="stMetricValue"] { font-size: 1.3em !important; }
+    [data-testid="stWidgetLabel"] p { font-size: 0.92em !important; }
+
+    /* ---- Navbar / sidebar brand logo (replaces the old emoji) ---- */
+    .brand-logo { width: 26px; height: 26px; border-radius: 7px; object-fit: cover; flex: 0 0 auto; }
+    .nav-logo { width: 32px; height: 32px; border-radius: 8px; }
+    .app-header .brand { gap: 10px; }
+    .app-header .brand .txt { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* ---- Navbar flush at the extreme top of the screen ---- */
+    html, body { margin: 0 !important; padding: 0 !important; }
+    [data-testid="stAppViewContainer"], [data-testid="stAppViewContainer"] > .main,
+    .stMainBlockContainer, .block-container {
+        padding-top: 0 !important; margin-top: 0 !important;
+    }
+    .st-key-topnav { margin-top: 0 !important; top: 0 !important; }
+
+    /* ---- Splash screen ---- */
+    .ck-splash {
+        position: fixed; inset: 0; z-index: 999999999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        animation: ckSplashOut 1.8s ease forwards;
+    }
+    .ck-splash-logo {
+        width: 104px; height: 104px; border-radius: 24px;
+        box-shadow: 0 12px 40px rgba(0,194,255,0.25);
+        animation: ckPulse 1.6s ease-in-out infinite;
+        margin-bottom: 20px;
+    }
+    .ck-splash-name { font-weight: 800; font-size: 1.3em; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .ck-splash-quote { font-style: italic; font-size: 0.95em; text-align: center; padding: 0 36px; max-width: 380px; }
+    @keyframes ckPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+    @keyframes ckSplashOut { 0% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+
+    /* ---- Photo dashboard cards (Fluids / Cycle) ---- */
+    .dash-card-photo {
+        position: relative; border-radius: 20px; overflow: hidden;
+        height: 190px; border: 1px solid #3a2c1c;
+        background-size: cover; background-position: center;
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+    .dash-card-photo::after {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.78) 100%);
+    }
+    .dash-card-photo .card-label {
+        position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 2;
+        display: flex; align-items: center; gap: 10px; color: #fff;
+    }
+    .dash-card-photo .card-label .icon { font-size: 1.5em; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6)); }
+    .dash-card-photo .card-label .txt h3 { margin: 0 !important; font-size: 1.05em !important; color: #fff !important; }
+    .dash-card-photo .card-label .txt p { margin: 2px 0 0 0; font-size: 0.78em; color: #e6e6e6 !important; }
+    .dash-card-photo:hover, .dash-card-photo:active {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 14px 34px rgba(0,194,255,0.35);
+        border-color: #00C2FF;
+    }
+
+    /* ---- Square selection cards: fluid picker + cycle-type picker ---- */
+    .st-key-fluid_select_grid div.stButton > button {
+        aspect-ratio: 1 / 1; width: 100%; height: auto;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 6px !important; white-space: pre-line; line-height: 1.3;
+    }
+    .st-key-fluid_select_grid [data-testid="stHorizontalBlock"] { gap: 10px !important; }
+    .dash-card-icon {
+        aspect-ratio: 1 / 1; width: 100%; height: auto !important; max-width: 150px;
+        padding: 8px !important;
+    }
+    [data-testid="stHorizontalBlock"]:has(.dash-card-icon) { gap: 14px !important; }
+
+    /* ---- Critical-point box under the navbar ---- */
+    .critical-box { margin: 4px 0 12px 0; line-height: 1.6; }
+
+    /* ---- Chart cards: nudge left, scoped scroll instead of page-wide
+       horizontal scroll, with a slim scrollbar (invisible track). Height
+       and width of the chart itself are untouched — only the wrapper's
+       own overflow behaviour changes. ---- */
+    html, body { overflow-x: hidden; }
+    .stApp { overflow-x: hidden; }
+    div[class*="st-key-fig"], div[class*="st-key-steam_graph_row"] {
+        overflow-x: auto;
+        margin-left: -6px;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+    div[data-testid="stTable"] { overflow-x: auto; }
+    ::-webkit-scrollbar { height: 6px; width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,194,255,0.45); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,194,255,0.7); }
+    * { scrollbar-width: thin; scrollbar-color: rgba(0,194,255,0.45) transparent; }
+
+    /* ---- Tighten default vertical rhythm a bit — proper gaps, less
+       dead space between stacked sections. ---- */
+    div[data-testid="stVerticalBlock"] { gap: 0.6rem; }
+    .stApp [data-testid="stVerticalBlockBorderWrapper"] { margin-bottom: 0.2rem; }
