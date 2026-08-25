@@ -1,123 +1,376 @@
-// ---------------------------------------------------------------------
-// Curious Kelvin — shared client-side script (loaded once via
-// components.html on every rerun). Three independent jobs:
-//   1. Hide the "Hosted with Streamlit" cloud badge.
-//   2. Make sure the PWA manifest link is present in <head>.
-//   3. Make the hamburger / sidebar open+close INSTANT by toggling the
-//      drawer's CSS directly, instead of waiting for a full Streamlit
-//      rerun round-trip. Python still keeps its own state in sync (see
-//      render_nav_sidebar in app.py) so the two never disagree.
-// ---------------------------------------------------------------------
-try {
-    var css = 'a[href*="streamlit.io"], a[href*="github.com"] ' +
-              '{ display: none !important; visibility: hidden !important; }';
-    var styleTag = window.top.document.createElement('style');
-    styleTag.appendChild(window.top.document.createTextNode(css));
-    window.top.document.head.appendChild(styleTag);
+(function () {
+    "use strict";
 
-    function hideCloudBadge() {
-        var sel = 'a[href*="streamlit.io"], a[href*="github.com"]';
-        window.top.document.querySelectorAll(sel).forEach(function (el) {
-            el.style.setProperty('display', 'none', 'important');
+    const doc = window.top.document;
+
+    function injectStyle() {
+        if (doc.getElementById("thermolab-client-style")) return;
+
+        const style = doc.createElement("style");
+        style.id = "thermolab-client-style";
+
+        style.textContent = `
+            a[href*="streamlit.io"],
+            a[href*="github.com"] {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            header[data-testid="stHeader"] {
+                display: none !important;
+                height: 0 !important;
+            }
+
+            .st-key-topnav {
+                margin-top: 0 !important;
+            }
+
+            section[data-testid="stSidebar"] {
+                will-change: transform;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+            }
+
+            body.thermolab-drawer-open {
+                overflow: hidden !important;
+            }
+        `;
+
+        doc.head.appendChild(style);
+    }
+
+    function hideBadges() {
+        doc.querySelectorAll(
+            'a[href*="streamlit.io"], a[href*="github.com"]'
+        ).forEach(function (element) {
+            element.style.setProperty(
+                "display",
+                "none",
+                "important"
+            );
+
+            element.style.setProperty(
+                "visibility",
+                "hidden",
+                "important"
+            );
         });
     }
-    hideCloudBadge();
-    var badgeObserver = new MutationObserver(hideCloudBadge);
-    badgeObserver.observe(window.top.document.body, { childList: true, subtree: true });
-} catch (e) {}
 
-try {
-    (function () {
-        var link = window.top.document.querySelector('link[rel="manifest"]');
-        if (!link) {
-            link = window.top.document.createElement('link');
-            link.rel = 'manifest';
-            window.top.document.head.appendChild(link);
+    function ensureManifest() {
+        const manifestUrl =
+            "https://saching1012.github.io/ThermoLab/static/manifest.json";
+
+        let manifest =
+            doc.querySelector('link[rel="manifest"]');
+
+        if (!manifest) {
+            manifest = doc.createElement("link");
+            manifest.rel = "manifest";
+            doc.head.appendChild(manifest);
         }
-        link.href = 'https://saching1012.github.io/ThermoLab/static/manifest.json';
-    })();
-} catch (e) {}
 
-try {
-    (function () {
-        var doc = window.top.document;
+        if (manifest.href !== manifestUrl) {
+            manifest.href = manifestUrl;
+        }
+    }
 
-        function killTopGap() {
-            var nav = doc.querySelector('.st-key-topnav');
-            if (!nav) return;
-            var el = nav;
-            var hops = 0;
-            while (el && hops < 8) {
-                el.style.setProperty('padding-top', '0px', 'important');
-                el.style.setProperty('margin-top', '0px', 'important');
-                el = el.parentElement;
-                hops++;
+    function fixTopNavigation() {
+        const nav =
+            doc.querySelector(".st-key-topnav");
+
+        if (!nav) return;
+
+        let element = nav;
+        let depth = 0;
+
+        while (element && depth < 8) {
+            element.style.setProperty(
+                "margin-top",
+                "0px",
+                "important"
+            );
+
+            element.style.setProperty(
+                "padding-top",
+                "0px",
+                "important"
+            );
+
+            element = element.parentElement;
+            depth++;
+        }
+
+        nav.style.setProperty(
+            "padding-top",
+            "8px",
+            "important"
+        );
+
+        nav.style.setProperty(
+            "margin-top",
+            "0px",
+            "important"
+        );
+
+        const header =
+            doc.querySelector(
+                'header[data-testid="stHeader"]'
+            );
+
+        if (header) {
+            header.style.setProperty(
+                "display",
+                "none",
+                "important"
+            );
+
+            header.style.setProperty(
+                "height",
+                "0px",
+                "important"
+            );
+        }
+    }
+
+    function getSidebar() {
+        return doc.querySelector(
+            'section[data-testid="stSidebar"]'
+        );
+    }
+
+    function getBackdrop() {
+        return doc.querySelector(
+            ".st-key-sidebar_backdrop"
+        );
+    }
+
+    function getBurger() {
+        return doc.querySelector(
+            ".st-key-burger_toggle"
+        );
+    }
+
+    function openSidebar() {
+        const sidebar = getSidebar();
+        const backdrop = getBackdrop();
+        const burger = getBurger();
+
+        if (!sidebar) return;
+
+        sidebar.style.setProperty(
+            "display",
+            "block",
+            "important"
+        );
+
+        sidebar.style.setProperty(
+            "visibility",
+            "visible",
+            "important"
+        );
+
+        sidebar.style.setProperty(
+            "transform",
+            "translate3d(0,0,0)",
+            "important"
+        );
+
+        sidebar.style.setProperty(
+            "pointer-events",
+            "auto",
+            "important"
+        );
+
+        sidebar.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+        if (backdrop) {
+            backdrop.style.setProperty(
+                "display",
+                "block",
+                "important"
+            );
+
+            backdrop.style.setProperty(
+                "visibility",
+                "visible",
+                "important"
+            );
+
+            backdrop.style.setProperty(
+                "pointer-events",
+                "auto",
+                "important"
+            );
+        }
+
+        if (burger) {
+            burger.style.setProperty(
+                "visibility",
+                "hidden",
+                "important"
+            );
+        }
+
+        doc.body.classList.add(
+            "thermolab-drawer-open"
+        );
+    }
+
+    function closeSidebar() {
+        const sidebar = getSidebar();
+        const backdrop = getBackdrop();
+        const burger = getBurger();
+
+        if (!sidebar) return;
+
+        sidebar.style.setProperty(
+            "transform",
+            "translate3d(100%,0,0)",
+            "important"
+        );
+
+        sidebar.style.setProperty(
+            "pointer-events",
+            "none",
+            "important"
+        );
+
+        sidebar.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        if (backdrop) {
+            backdrop.style.setProperty(
+                "display",
+                "none",
+                "important"
+            );
+
+            backdrop.style.setProperty(
+                "visibility",
+                "hidden",
+                "important"
+            );
+
+            backdrop.style.setProperty(
+                "pointer-events",
+                "none",
+                "important"
+            );
+        }
+
+        if (burger) {
+            burger.style.setProperty(
+                "visibility",
+                "visible",
+                "important"
+            );
+        }
+
+        doc.body.classList.remove(
+            "thermolab-drawer-open"
+        );
+    }
+
+    function wireButton(button, handler) {
+        if (!button) return;
+
+        if (button.dataset.thermolabWired === "1") {
+            return;
+        }
+
+        button.dataset.thermolabWired = "1";
+
+        button.addEventListener(
+            "click",
+            function () {
+                handler();
+            },
+            false
+        );
+    }
+
+    function wireNavigation() {
+        const burger =
+            doc.querySelector(
+                ".st-key-burger_toggle button"
+            );
+
+        const close =
+            doc.querySelector(
+                ".st-key-sidebar_close_x button"
+            );
+
+        const backdrop =
+            doc.querySelector(
+                ".st-key-sidebar_backdrop button"
+            );
+
+        wireButton(burger, openSidebar);
+        wireButton(close, closeSidebar);
+        wireButton(backdrop, closeSidebar);
+    }
+
+    function initialize() {
+        injectStyle();
+        ensureManifest();
+        hideBadges();
+        fixTopNavigation();
+        wireNavigation();
+    }
+
+    initialize();
+
+    if (!window.thermoLabObserver) {
+        window.thermoLabObserver =
+            new MutationObserver(function () {
+                requestAnimationFrame(function () {
+                    hideBadges();
+                    fixTopNavigation();
+                    wireNavigation();
+                });
+            });
+
+        window.thermoLabObserver.observe(
+            doc.body,
+            {
+                childList: true,
+                subtree: true
             }
-            nav.style.setProperty('padding-top', '8px', 'important');
-            var header = doc.querySelector('header[data-testid="stHeader"]');
-            if (header) header.style.setProperty('display', 'none', 'important');
-        }
-        killTopGap();
-        var gapIv = setInterval(killTopGap, 300);
-        setTimeout(function () { clearInterval(gapIv); }, 10000);
-    })();
-} catch (e) {}
+        );
+    }
 
-try {
-    (function () {
-        var doc = window.top.document;
+    if (!window.thermoLabKeyboard) {
+        window.thermoLabKeyboard = true;
 
-        function openSidebarNow() {
-            var sidebar = doc.querySelector('section[data-testid="stSidebar"]');
-            var backdrop = doc.querySelector('.st-key-sidebar_backdrop');
-            var burger = doc.querySelector('.st-key-burger_toggle');
-            if (!sidebar) return;
-            sidebar.style.setProperty('display', 'block', 'important');
-            sidebar.style.setProperty('transform', 'translateX(0)', 'important');
-            sidebar.style.setProperty('visibility', 'visible', 'important');
-            sidebar.style.setProperty('pointer-events', 'auto', 'important');
-            var content = doc.querySelector('[data-testid="stSidebarUserContent"]');
-            if (content) content.style.setProperty('visibility', 'visible', 'important');
-            if (backdrop) backdrop.style.setProperty('display', 'block', 'important');
-            if (burger) burger.style.setProperty('visibility', 'hidden', 'important');
-        }
+        doc.addEventListener(
+            "keydown",
+            function (event) {
+                if (event.key === "Escape") {
+                    closeSidebar();
+                }
+            },
+            false
+        );
+    }
 
-        function closeSidebarNow() {
-            var sidebar = doc.querySelector('section[data-testid="stSidebar"]');
-            var backdrop = doc.querySelector('.st-key-sidebar_backdrop');
-            var burger = doc.querySelector('.st-key-burger_toggle');
-            if (!sidebar) return;
-            sidebar.style.setProperty('transform', 'translateX(100%)', 'important');
-            sidebar.style.setProperty('pointer-events', 'none', 'important');
-            if (backdrop) backdrop.style.setProperty('display', 'none', 'important');
-            if (burger) burger.style.setProperty('visibility', 'visible', 'important');
-        }
+    if (!window.thermoLabResize) {
+        window.thermoLabResize = true;
 
-        function wireUp() {
-            var burgerBtn = doc.querySelector('.st-key-burger_toggle button');
-            var closeBtn = doc.querySelector('.st-key-sidebar_close_x button');
-            var backdropBtn = doc.querySelector('.st-key-sidebar_backdrop button');
-            if (burgerBtn && !burgerBtn.dataset.ckWired) {
-                burgerBtn.dataset.ckWired = '1';
-                burgerBtn.addEventListener('click', openSidebarNow, true);
-            }
-            if (closeBtn && !closeBtn.dataset.ckWired) {
-                closeBtn.dataset.ckWired = '1';
-                closeBtn.addEventListener('click', closeSidebarNow, true);
-            }
-            if (backdropBtn && !backdropBtn.dataset.ckWired) {
-                backdropBtn.dataset.ckWired = '1';
-                backdropBtn.addEventListener('click', closeSidebarNow, true);
-            }
-        }
+        window.addEventListener(
+            "resize",
+            function () {
+                requestAnimationFrame(
+                    fixTopNavigation
+                );
+            },
+            { passive: true }
+        );
+    }
 
-        // Streamlit re-renders these buttons on every rerun, so keep
-        // re-checking for a while rather than wiring up only once.
-        var tries = 0;
-        var iv = setInterval(function () {
-            tries++;
-            try { wireUp(); } catch (e) {}
-            if (tries > 60) clearInterval(iv);
-        }, 200);
-    })();
-} catch (e) {}
+})();
