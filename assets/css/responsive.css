@@ -1,0 +1,169 @@
+    .st-key-topnav {
+        position: sticky; top: 0; z-index: 999999;
+        /* Nav bar now sits flush at the extreme top edge of the app (the
+           page's own top padding was removed) — this small internal
+           padding keeps the icons/title from touching the physical screen
+           edge, without leaving a gap above the bar itself. */
+        padding-top: 10px !important;
+    }
+    /* The page's own top padding moved into the nav bar above, so give the
+       first block of real content back a bit of breathing room under the
+       now-flush nav bar. */
+    .block-container > div:nth-child(2) {
+        margin-top: 8px;
+    }
+    /* Consistent breathing room between stacked input-grid rows, at any
+       viewport width. */
+    div[class*="st-key-igrid_"] { margin-bottom: 6px; }
+    @media (max-width: 640px) {
+        /* Keep the navbar (Prev / brand / theme / hamburger) as ONE
+           horizontal strip instead of stacking, even on a phone screen.
+           Both "column" and "stColumn" testids are targeted since the
+           attribute name has changed across Streamlit versions. */
+        .st-key-topnav [data-testid="stHorizontalBlock"] {
+            flex-wrap: nowrap !important;
+            flex-direction: row !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+        }
+        .st-key-topnav [data-testid="column"],
+        .st-key-topnav [data-testid="stColumn"] {
+            width: auto !important;
+            flex: 0 0 auto !important;
+            min-width: 0 !important;
+            padding: 0 2px !important;
+        }
+        /* The brand/title column is the 2nd of the 4 (Prev, Brand, Theme,
+           Hamburger) — it's the ONLY one that should flex, eating whatever
+           space Prev/Theme/Hamburger don't need and truncating its own
+           text with an ellipsis. Without this, the title took its full
+           natural width and Prev/Theme/Hamburger butted right up against
+           it with almost no gap. */
+        .st-key-topnav [data-testid="column"]:nth-child(2),
+        .st-key-topnav [data-testid="stColumn"]:nth-child(2) {
+            flex: 1 1 auto !important;
+            overflow: hidden !important;
+            padding: 0 6px !important;
+        }
+        .app-header { overflow: hidden; }
+        .app-header .brand { min-width: 0; overflow: hidden; }
+        .app-header .brand .txt {
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+        .app-header .brand .em { font-size: 1.5em; }
+        .app-header .brand .txt { font-size: 1.05em; }
+        .app-header .brand .txt .active { font-size: 0.72em; }
+        .app-header .nav-pill-row a { padding: 6px 10px; font-size: 0.8em; }
+        /* Sit flush at the very top on mobile, like a native app bar,
+           instead of floating below a visible gap. */
+        .block-container { padding-top: 0 !important; }
+        /* Bigger, easier-to-tap Prev/hamburger buttons — native apps give
+           icon-only top-bar buttons a real touch target, not a cramped one. */
+        .st-key-wiz_prev_top button, .st-key-burger_toggle button {
+            min-width: 40px !important; min-height: 40px !important;
+            font-size: 1.15em !important;
+        }
+
+        .hero-wrap { padding: 20px 16px 12px 16px; border-radius: 14px; }
+        .hero-title { font-size: 1.55em; }
+        .hero-sub { font-size: 0.9em; }
+        .app-footer {
+            flex-direction: column !important; align-items: center !important;
+            text-align: center !important; gap: 10px !important;
+        }
+        .app-footer a { font-size: 1.05em; padding: 4px 0; display: inline-block; }
+        .hero-eyebrow { font-size: 0.66em; letter-spacing: 1.5px; padding: 3px 9px; }
+
+        .dash-card { padding: 16px 14px; min-height: unset; }
+        .dash-card .icon { font-size: 1.7em; margin-bottom: 4px; }
+        .dash-card h3 { font-size: 1.02em !important; }
+        .dash-card p { font-size: 0.87em; }
+        .dash-card-icon { padding: 10px 6px !important; max-width: 108px; }
+        .dash-card-icon .icon { font-size: 1.4em; }
+        .dash-card-icon h3 { font-size: 0.72em !important; }
+
+        div[data-testid="stTable"] { overflow-x: auto; display: block; font-size: 0.8em; }
+
+        div.stButton > button { padding: 0.4rem 0.6rem; font-size: 0.92em; }
+
+        /* Sidebar becomes a narrow drawer on phones — never wider than the
+           screen, and never so wide it hides everything behind it. */
+        section[data-testid="stSidebar"] {
+            width: 78vw !important;
+            min-width: 210px !important;
+            max-width: 300px !important;
+        }
+
+        /* NOTE: graph-row columns (steam_graph_row*) used to be forced into
+           a 2-column grid here even on phones. That's been removed so
+           narrow/mobile screens fall back to Streamlit's normal behavior:
+           each graph gets its own full-width row, stacked one below the
+           other, which keeps titles/axis text readable instead of cramped
+           into a half-width column. Desktop/tablet widths (above 640px,
+           outside this media query) are unaffected and stay 2-column via
+           the plain st.columns(2) call in the Python code. */
+
+        /* ---- Input grids: every paired-input row across Steam Explorer,
+           Rankine and Brayton (each wrapped in a st.container(key="igrid_*"))
+           stays a real 2-column grid on mobile — one input + its unit per
+           column — instead of stacking to one column. Wildcard match on the
+           "igrid_" key prefix covers every such row without enumerating
+           each key by name. ---- */
+        div[class*="st-key-igrid_"] [data-testid="stHorizontalBlock"] {
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 8px 8px !important;
+        }
+        div[class*="st-key-igrid_"] [data-testid="stColumn"] {
+            flex: 0 0 calc(50% - 4px) !important;
+            max-width: calc(50% - 4px) !important;
+            min-width: 0 !important;
+            width: calc(50% - 4px) !important;
+        }
+        /* The rule above also catches the field+unit mini-row INSIDE each
+           unit_number_input (it's nested columns too) and was squashing it
+           to 50/50, which is what made the unit dropdown look shifted out
+           of line with its input. Restore that row's real ~70/30 field/unit
+           ratio — higher specificity (extra :first-child/:last-child) and
+           later in the cascade, so it wins over the rule above. */
+        div[class*="st-key-unitrow_"] [data-testid="stColumn"]:first-child {
+            flex: 0 0 62% !important; max-width: 62% !important; width: 62% !important;
+        }
+        div[class*="st-key-unitrow_"] [data-testid="stColumn"]:last-child {
+            flex: 0 0 38% !important; max-width: 38% !important; width: 38% !important;
+        }
+
+        /* ---- Steam / Cycle / Rankine / Brayton icon-tile rows: force a
+           real 2-column grid on mobile too — these used plain st.columns()
+           with no override, so they were silently stacking to ONE column
+           on a phone (Streamlit's default) instead of staying side by
+           side like the desktop layout. ---- */
+        div[class*="st-key-iconrow_"] [data-testid="stHorizontalBlock"] {
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+        }
+        div[class*="st-key-iconrow_"] [data-testid="stColumn"] {
+            flex: 0 0 calc(50% - 10px) !important;
+            max-width: calc(50% - 10px) !important;
+            min-width: 0 !important;
+            width: calc(50% - 10px) !important;
+        }
+
+        /* ---- Fluid-select cards: same 2-column grid treatment. With 5
+           fluids this wraps as 2 + 2 + 1, matching how a real mobile app
+           grid handles an odd count. ---- */
+        .st-key-fluid_select_grid [data-testid="stHorizontalBlock"] {
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 10px 6px !important;
+        }
+        .st-key-fluid_select_grid [data-testid="stColumn"] {
+            flex: 0 0 calc(50% - 6px) !important;
+            max-width: calc(50% - 6px) !important;
+            min-width: 0 !important;
+            width: calc(50% - 6px) !important;
+        }
+    }
