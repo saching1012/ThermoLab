@@ -4,45 +4,313 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#14100c">
-<title>Curious Kelvin</title>
-<link rel="manifest" href="static/manifest.json">
-<link rel="icon" href="static/launchericon-192x192.png">
-<!-- No-JS fallback: redirect after 2s so the splash is actually visible -->
-<meta http-equiv="refresh" content="2; url=https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ThermoLab">
+<meta name="application-name" content="ThermoLab">
+<meta name="format-detection" content="telephone=no">
+
+<title>ThermoLab</title>
+
+<link rel="manifest" href="/ThermoLab/static/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/ThermoLab/static/launchericon-192x192.png">
+<link rel="apple-touch-icon" href="/ThermoLab/static/launchericon-192x192.png">
+
+<meta http-equiv="refresh" content="3;url=https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/">
+
 <style>
-  html, body {
-    margin: 0; padding: 0; height: 100%; background: #14100c;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  }
-  .splash {
-    position: fixed; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; text-align: center; padding: 0 32px;
-  }
-  .splash img {
-    width: 110px; height: 110px; border-radius: 26px;
-    box-shadow: 0 12px 40px rgba(0,194,255,0.25);
-    animation: pulse 1.6s ease-in-out infinite;
-    margin-bottom: 22px;
-  }
-  .splash h1 { color: #f2f6fa; font-size: 1.3em; margin: 0 0 10px 0; letter-spacing: 0.5px; }
-  .splash p { color: #9fb3c2; font-style: italic; font-size: 0.95em; max-width: 340px; margin: 0; }
-  .splash a { display: inline-block; margin-top: 26px; color: #00C2FF; font-size: 0.85em; text-decoration: none; }
-  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+:root {
+    --bg: #14100c;
+    --surface: #1c150f;
+    --text: #f2f6fa;
+    --muted: #9fb3c2;
+    --accent: #00c2ff;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+}
+
+body {
+    min-height: 100dvh;
+    overscroll-behavior: none;
+}
+
+.splash {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding:
+        max(24px, env(safe-area-inset-top))
+        28px
+        max(24px, env(safe-area-inset-bottom));
+    background:
+        radial-gradient(
+            700px 420px at 50% 30%,
+            rgba(0, 194, 255, 0.10),
+            transparent 65%
+        ),
+        radial-gradient(
+            500px 350px at 50% 100%,
+            rgba(255, 60, 172, 0.06),
+            transparent 70%
+        ),
+        var(--bg);
+}
+
+.logo-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.logo-wrap::before {
+    content: "";
+    position: absolute;
+    width: 145px;
+    height: 145px;
+    border-radius: 50%;
+    background: rgba(0, 194, 255, 0.08);
+    filter: blur(18px);
+    animation: glow 2.2s ease-in-out infinite;
+}
+
+.splash img {
+    position: relative;
+    width: 112px;
+    height: 112px;
+    object-fit: cover;
+    border-radius: 27px;
+    box-shadow:
+        0 14px 45px rgba(0, 194, 255, 0.22),
+        0 4px 14px rgba(0, 0, 0, 0.35);
+    animation: logoPulse 2s ease-in-out infinite;
+}
+
+.splash h1 {
+    margin: 0;
+    color: var(--text);
+    font-size: clamp(1.45rem, 6vw, 1.85rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+}
+
+.splash h1 span {
+    color: var(--accent);
+}
+
+.splash p {
+    max-width: 330px;
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    font-style: italic;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 28px;
+}
+
+.loading span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: loading 1.2s ease-in-out infinite;
+}
+
+.loading span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.loading span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.fallback {
+    margin-top: 22px;
+}
+
+.fallback a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 9px 18px;
+    border: 1px solid rgba(0, 194, 255, 0.28);
+    border-radius: 999px;
+    background: rgba(0, 194, 255, 0.06);
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.fallback a:active {
+    transform: scale(0.96);
+    background: rgba(0, 194, 255, 0.13);
+}
+
+@keyframes logoPulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.045);
+    }
+}
+
+@keyframes glow {
+    0%,
+    100% {
+        opacity: 0.65;
+        transform: scale(0.95);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+}
+
+@keyframes loading {
+    0%,
+    70%,
+    100% {
+        opacity: 0.25;
+        transform: translateY(0);
+    }
+
+    35% {
+        opacity: 1;
+        transform: translateY(-4px);
+    }
+}
+
+@media (max-width: 380px) {
+    .splash {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .splash img {
+        width: 96px;
+        height: 96px;
+        border-radius: 23px;
+    }
+
+    .logo-wrap {
+        margin-bottom: 20px;
+    }
+
+    .splash p {
+        font-size: 0.86rem;
+    }
+
+    .loading {
+        margin-top: 22px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .splash img,
+    .logo-wrap::before,
+    .loading span {
+        animation: none;
+    }
+}
 </style>
+
 <script>
-  // Primary redirect path — gives the splash ~1.8s of visible screen time
-  // before handing off to the actual Streamlit app.
-  setTimeout(function () {
-    window.location.replace("https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/");
-  }, 1800);
+(function () {
+    var appUrl = "https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/";
+
+    function launchApp() {
+        window.location.replace(appUrl);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(launchApp, 1800);
+        });
+    } else {
+        setTimeout(launchApp, 1800);
+    }
+})();
 </script>
+
 </head>
+
 <body>
-  <div class="splash">
-    <img src="static/launchericon-512x512.png" alt="Curious Kelvin">
-    <h1>Curious Kelvin</h1>
-    <p>&ldquo;Every state, every cycle &mdash; let's reach equilibrium.&rdquo;</p>
-    <a href="https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/">Tap here if not redirected</a>
-  </div>
+<main class="splash">
+    <div class="logo-wrap">
+        <img
+            src="/ThermoLab/static/launchericon-512x512.png"
+            alt="ThermoLab"
+            draggable="false"
+        >
+    </div>
+
+    <h1>Thermo<span>Lab</span></h1>
+
+    <p>
+        Every state, every cycle — let's reach equilibrium.
+    </p>
+
+    <div class="loading" aria-label="Loading">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="fallback">
+        <a href="https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/">
+            Open ThermoLab
+        </a>
+    </div>
+</main>
 </body>
 </html>
