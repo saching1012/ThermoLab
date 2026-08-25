@@ -10,11 +10,6 @@ import base64
 
 from CoolProp.CoolProp import PhaseSI, PropsSI
 
-# ---------------------------------------------------------------------------
-# Brand assets — logo / dashboard photos are embedded as base64 data-URIs so
-# they render correctly no matter where the app is hosted (Streamlit Cloud
-# doesn't reliably serve arbitrary static files without extra config).
-# ---------------------------------------------------------------------------
 APP_NAME = "Curious Kelvin"
 APP_QUOTE = "Every state, every cycle — let's reach equilibrium."
 LOGO_PATH = "static/launchericon-512x512.png"
@@ -64,46 +59,6 @@ import streamlit.components.v1 as components
 _app_js = _read_text_asset(f"{ASSET_JS_DIR}/app.js")
 if _app_js:
     components.html(f"<script>{_app_js}</script>", height=0, width=0)
-
-# Guaranteed-inline JS (ships inside app.py, not a separate file that can
-# go missing on upload): finds the navbar container by its Streamlit key
-# and forcibly zeroes the top padding/margin on every ancestor above it,
-# up to a few levels. This kills the "gap above the navbar" regardless of
-# whatever internal class names this Streamlit version happens to use —
-# CSS selector guesses (block-container, stAppViewContainer, etc.) can go
-# stale across Streamlit versions, but walking the real rendered DOM from
-# a known anchor can't.
-components.html(
-    """
-    <script>
-    (function () {
-        function killTopGap() {
-            try {
-                var doc = window.top.document;
-                var nav = doc.querySelector('.st-key-topnav');
-                if (!nav) return;
-                var el = nav;
-                var hops = 0;
-                while (el && hops < 8) {
-                    el.style.setProperty('padding-top', '0px', 'important');
-                    el.style.setProperty('margin-top', '0px', 'important');
-                    el = el.parentElement;
-                    hops++;
-                }
-                nav.style.setProperty('padding-top', '8px', 'important');
-                var header = doc.querySelector('header[data-testid="stHeader"]');
-                if (header) header.style.setProperty('display', 'none', 'important');
-            } catch (e) {}
-        }
-        killTopGap();
-        var iv = setInterval(killTopGap, 300);
-        setTimeout(function () { clearInterval(iv); }, 10000);
-    })();
-    </script>
-    """,
-    height=0,
-    width=0,
-)
 
 
 def is_valid_number(value):
@@ -591,85 +546,151 @@ st.markdown(f"<style>{_RESPONSIVE_CSS}</style>", unsafe_allow_html=True)
 _EXTRA_CSS = _read_text_asset(f"{ASSET_CSS_DIR}/extra.css")
 st.markdown(f"<style>{_EXTRA_CSS}</style>", unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------
-# GUARANTEED_CSS — same family of fixes as extra.css above, but written
-# directly as a Python string instead of read from assets/css/extra.css.
-# extra.css depends on that file actually reaching the deployed repo at
-# the right path; if a manual GitHub upload ever drops or misplaces one
-# file in assets/css/, that styling silently disappears with no error.
-# This block can never fail to load — it ships inside app.py itself —
-# so the fixes below (navbar-to-top, scrollbar, redesigned cards) are
-# guaranteed to apply even if assets/css/extra.css is missing/stale.
-# ---------------------------------------------------------------------
-_GUARANTEED_CSS = """
-    html, body, .stApp, .stApp * {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                     "Helvetica Neue", Arial, sans-serif !important;
+_MOBILE_APP_CSS = """
+:root {
+    scrollbar-color: rgba(128, 112, 92, 0.72) transparent;
+    scrollbar-width: thin;
+}
+html, body, [data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"] {
+    scrollbar-color: rgba(128, 112, 92, 0.72) transparent !important;
+    scrollbar-width: thin !important;
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar, [data-testid="stAppViewContainer"]::-webkit-scrollbar, [data-testid="stAppViewBlockContainer"]::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, [data-testid="stAppViewContainer"]::-webkit-scrollbar-track, [data-testid="stAppViewBlockContainer"]::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, [data-testid="stAppViewContainer"]::-webkit-scrollbar-thumb, [data-testid="stAppViewBlockContainer"]::-webkit-scrollbar-thumb {
+    background: rgba(128, 112, 92, 0.72) !important;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+}
+html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover, [data-testid="stAppViewContainer"]::-webkit-scrollbar-thumb:hover, [data-testid="stAppViewBlockContainer"]::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 194, 255, 0.9) !important;
+}
+[data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"], .main, .block-container {
+    overflow-x: clip !important;
+}
+.st-key-topnav {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 900000 !important;
+    isolation: isolate;
+}
+.st-key-topnav .app-header {
+    min-width: 0 !important;
+}
+.st-key-topnav .brand-logo {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    object-fit: contain !important;
+    border-radius: 8px !important;
+}
+.st-key-topnav .brand .txt {
+    font-size: 0.98rem !important;
+    line-height: 1.08 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.st-key-topnav .brand .txt .active {
+    font-size: 0.62rem !important;
+    line-height: 1.1 !important;
+}
+section[data-testid="stSidebar"] {
+    z-index: 1000000 !important;
+    isolation: isolate !important;
+    overflow: hidden !important;
+}
+section[data-testid="stSidebar"] > div,
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+    position: relative !important;
+    z-index: 1 !important;
+}
+section[data-testid="stSidebar"] .nav-brand {
+    min-width: 0 !important;
+}
+section[data-testid="stSidebar"] .nav-brand .nav-logo {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    object-fit: contain !important;
+    border-radius: 8px !important;
+}
+section[data-testid="stSidebar"] .nav-brand .txt {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 0.98rem !important;
+}
+section[data-testid="stSidebar"] .nav-brand .txt small {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+section[data-testid="stSidebar"] * {
+    box-sizing: border-box;
+}
+@media (max-width: 640px) {
+    .block-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
     }
-    h1, h2, h3 { text-transform: none !important; letter-spacing: normal !important; }
-
-    /* ---- Navbar flush at the extreme top — broad selector net as a
-       backup to the JS-based fix injected near the top of the script. ---- */
-    html, body { margin: 0 !important; padding: 0 !important; }
-    header[data-testid="stHeader"] { display: none !important; height: 0 !important; }
-    [data-testid="stAppViewContainer"], [data-testid="stAppViewContainer"] > .main,
-    [data-testid="stAppViewContainer"] > div, .stMainBlockContainer, .block-container,
-    .stMain, section.main {
-        padding-top: 0 !important; margin-top: 0 !important;
+    .st-key-topnav {
+        margin-left: -12px !important;
+        margin-right: -12px !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
     }
-    .st-key-topnav { margin-top: 0 !important; top: 0 !important; padding-top: 8px !important; }
-
-    /* ---- Slim scrollbar, everywhere the page can scroll — thumb
-       visible, track (the "axis" it runs along) invisible. ---- */
-    html, body, .stApp, [data-testid="stAppViewContainer"],
-    div[class*="st-key-fig"], div[data-testid="stTable"] {
-        scrollbar-width: thin;
-        scrollbar-color: rgba(0,194,255,0.5) transparent;
+    .st-key-topnav .brand-logo {
+        width: 26px !important;
+        height: 26px !important;
+        min-width: 26px !important;
+        max-width: 26px !important;
     }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-track-piece { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0,194,255,0.5); border-radius: 999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(0,194,255,0.8); }
-    div[class*="st-key-fig"] { overflow-x: auto; margin-left: -6px; padding: 10px 4px 2px 4px; }
-    div[data-testid="stTable"] { overflow-x: auto; }
-
-    /* ---- Dashboard cards v2: full-width image touching the top edge
-       of the card, remaining text in a padded body below it. ---- */
-    a.dash-card-link { text-decoration: none !important; display: block; height: 100%; }
-    .dash-card-v2 {
-        border-radius: 18px; overflow: hidden; border: 1px solid #3a2c1c;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        display: flex; flex-direction: column; height: 100%;
+    .st-key-topnav .brand .txt {
+        font-size: 0.88rem !important;
     }
-    .dash-card-v2-img {
-        width: 100%; height: 118px;
-        background-size: cover; background-position: center;
-        flex: 0 0 auto;
+    .st-key-topnav .brand .txt .active {
+        font-size: 0.55rem !important;
+        letter-spacing: 1px !important;
     }
-    .dash-card-v2-body {
-        padding: 12px 14px 16px 14px;
-        display: flex; align-items: center; gap: 10px;
+    section[data-testid="stSidebar"] {
+        width: min(84vw, 320px) !important;
+        min-width: 230px !important;
+        max-width: 320px !important;
     }
-    .dash-card-v2-body .icon { font-size: 1.5em; flex: 0 0 auto; }
-    .dash-card-v2-body .txt h3 { margin: 0 !important; font-size: 1.02em !important; }
-    .dash-card-v2-body .txt p { margin: 2px 0 0 0 !important; font-size: 0.78em !important; }
-    .dash-card-v2:hover, .dash-card-v2:active {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 28px rgba(0,194,255,0.28);
-        border-color: #00C2FF;
+    section[data-testid="stSidebar"] .nav-brand .nav-logo {
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        max-width: 30px !important;
     }
-
-    /* ---- Square selection cards: fluid picker + cycle-type picker ---- */
-    .st-key-fluid_select_grid div.stButton > button {
-        aspect-ratio: 1 / 1; width: 100%; height: auto;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        padding: 6px !important; white-space: pre-line; line-height: 1.3;
+    section[data-testid="stSidebar"] .nav-brand .txt {
+        font-size: 0.92rem !important;
     }
-    .dash-card-icon { aspect-ratio: 1 / 1; width: 100%; height: auto !important; max-width: 150px; padding: 8px !important; }
+    section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        max-height: calc(100vh - 8px) !important;
+        padding-bottom: 24px !important;
+    }
+    .st-key-sidebar_backdrop {
+        z-index: 999990 !important;
+    }
+}
 """
-st.markdown(f"<style>{_GUARANTEED_CSS}</style>", unsafe_allow_html=True)
+st.markdown(f"<style>{_MOBILE_APP_CSS}</style>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------
 # Splash screen — logo + tagline, shown once per browser session before
@@ -814,21 +835,13 @@ def render_welcome():
     hc1, hc2 = st.container(key="iconrow_welcome").columns(2, gap="small")
     _fluid_photo = _img_data_uri(FLUID_IMG_PATH)
     _cycle_photo = _img_data_uri(CYCLE_IMG_PATH)
-    _card_bg = "#1d160f" if _is_dark() else "#fffdf8"
-    _card_border = "#3a2c1c" if _is_dark() else "#e3d2ad"
-    _card_title_c = "#f2f6fa" if _is_dark() else "#17120a"
-    _card_sub_c = "#b3a690" if _is_dark() else "#5c4f3d"
     with hc1:
         st.markdown(f"""
         <a class="dash-card-link" href="?mode=explorer&{_theme_qs()}" target="_self">
-          <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
-              <div class="dash-card-v2-img" style="background-image:url('{_fluid_photo}')"></div>
-              <div class="dash-card-v2-body">
+          <div class="dash-card-photo" style="background-image:url('{_fluid_photo}')">
+              <div class="card-label">
                   <div class="icon">🌡️</div>
-                  <div class="txt">
-                      <h3 style="color:{_card_title_c};">Fluids</h3>
-                      <p style="color:{_card_sub_c};">Explore thermodynamic properties</p>
-                  </div>
+                  <div class="txt"><h3>Fluids</h3><p>Explore thermodynamic properties</p></div>
               </div>
           </div>
         </a>
@@ -836,14 +849,10 @@ def render_welcome():
     with hc2:
         st.markdown(f"""
         <a class="dash-card-link" href="?mode=cycles&{_theme_qs()}" target="_self">
-          <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
-              <div class="dash-card-v2-img" style="background-image:url('{_cycle_photo}')"></div>
-              <div class="dash-card-v2-body">
+          <div class="dash-card-photo" style="background-image:url('{_cycle_photo}')">
+              <div class="card-label">
                   <div class="icon">⚡</div>
-                  <div class="txt">
-                      <h3 style="color:{_card_title_c};">Cycle</h3>
-                      <p style="color:{_card_sub_c};">Analyze power cycles</p>
-                  </div>
+                  <div class="txt"><h3>Cycle</h3><p>Analyze power cycles</p></div>
               </div>
           </div>
         </a>
@@ -885,13 +894,12 @@ def render_header(active_label):
                 st.session_state.wizard_step = wsteps[idx - 1]
                 st.rerun()
         with c_brand:
-            _logo_uri = _img_data_uri(LOGO_PATH)
-            # App name always stands alone in the navbar now — no page
-            # subtitle underneath it, regardless of what's passed in.
+            _logo_uri = _img_data_uri(LOGO_ICON_PATH)
+            _active_html = f'<span class="active">{active_label}</span>' if active_label else ''
             st.markdown(
                 '<div class="app-header"><div class="brand">'
-                f'<img class="brand-logo" src="{_logo_uri}" alt="logo" />'
-                f'<div class="txt">{APP_NAME}</div></div></div>',
+                f'<img class="brand-logo top-logo" src="{_logo_uri}" alt="logo" />'
+                f'<div class="txt">{APP_NAME}{_active_html}</div></div></div>',
                 unsafe_allow_html=True
             )
         with c_burger:
@@ -914,7 +922,7 @@ def render_nav_sidebar():
                 st.session_state.sidebar_open = False
                 st.rerun()
         with _sb_brand_col:
-            _sb_logo_uri = _img_data_uri(LOGO_PATH)
+            _sb_logo_uri = _img_data_uri(LOGO_ICON_PATH)
             st.markdown(
                 f'<div class="nav-brand"><img class="brand-logo nav-logo" src="{_sb_logo_uri}" alt="logo" />'
                 f'<div class="txt">{APP_NAME}<small>Fluid &amp; Cycle Analysis</small></div></div>',
