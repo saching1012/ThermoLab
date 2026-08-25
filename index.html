@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14100c">
+<title>Curious Kelvin</title>
+<link rel="manifest" href="static/manifest.json">
+<link rel="icon" href="static/launchericon-192x192.png">
+<!-- No-JS fallback: redirect after 2s so the splash is actually visible -->
+<meta http-equiv="refresh" content="2; url=https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/">
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%; background: #14100c;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  }
+  .splash {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; padding: 0 32px;
+  }
+  .splash img {
+    width: 110px; height: 110px; border-radius: 26px;
+    box-shadow: 0 12px 40px rgba(0,194,255,0.25);
+    animation: pulse 1.6s ease-in-out infinite;
+    margin-bottom: 22px;
+  }
+  .splash h1 { color: #f2f6fa; font-size: 1.3em; margin: 0 0 10px 0; letter-spacing: 0.5px; }
+  .splash p { color: #9fb3c2; font-style: italic; font-size: 0.95em; max-width: 340px; margin: 0; }
+  .splash a { display: inline-block; margin-top: 26px; color: #00C2FF; font-size: 0.85em; text-decoration: none; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+</style>
+<script>
+  // Primary redirect path — gives the splash ~1.8s of visible screen time
+  // before handing off to the actual Streamlit app.
+  setTimeout(function () {
+    window.location.replace("https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/");
+  }, 1800);
+</script>
+</head>
+<body>
+  <div class="splash">
+    <img src="static/launchericon-512x512.png" alt="Curious Kelvin">
+    <h1>Curious Kelvin</h1>
+    <p>&ldquo;Every state, every cycle &mdash; let's reach equilibrium.&rdquo;</p>
+    <a href="https://thermolab185-7zyvlqlgvmt63g8vkrfe9x.streamlit.app/">Tap here if not redirected</a>
+  </div>
+</body>
+</html>
