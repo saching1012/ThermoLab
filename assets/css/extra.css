@@ -12,6 +12,14 @@ html, body {
     margin: 0 !important;
     padding: 0 !important;
 }
+html, body, .stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewContainer"] > .main,
+.stMainBlockContainer, .stMain, section.main {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100% !important;
+}
 
 header[data-testid="stHeader"] {
     display: none !important;
@@ -42,13 +50,14 @@ html, body, .stApp,
 [data-testid="stAppViewContainer"],
 div[class*="st-key-fig"],
 div[data-testid="stTable"] {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0,194,255,0.5) transparent;
+    scrollbar-width: none;     
+    -ms-overflow-style: none;  
 }
 
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 0px;
+    height: 0px;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-track {
@@ -73,6 +82,11 @@ div[class*="st-key-fig"] {
     margin-left: -6px !important;
     padding: 10px 4px 2px 4px !important;
     box-sizing: border-box;
+}
+
+div[class*="st-key-fig"] .js-plotly-plot,
+div[class*="st-key-fig"] .svg-container {
+    touch-action: pan-y !important;
 }
 
 div[data-testid="stTable"] {
