@@ -85,6 +85,31 @@ components.html(
     (function () {
         var doc = window.top.document;
 
+        // ---- 0. Pinch-to-zoom on charts. Streamlit ships its own
+        // <meta name="viewport"> tag with user-scalable=no by default —
+        // that's a BROWSER-level restriction, above any page CSS, so no
+        // touch-action rule on the chart elements could ever undo it: the
+        // browser refuses the pinch gesture before it reaches Plotly's own
+        // JS handler at all. This rewrites that tag directly. Placed in
+        // THIS guaranteed-inline script (not the separate assets/js/app.js
+        // file) because that external file depends on a correct upload/
+        // deploy path that has proven unreliable to verify from here —
+        // this block ships inside app.py itself and cannot go missing. ----
+        function fixViewport() {
+            var desired = 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes';
+            var vp = doc.querySelector('meta[name="viewport"]');
+            if (!vp) {
+                vp = doc.createElement('meta');
+                vp.name = 'viewport';
+                doc.head.appendChild(vp);
+            }
+            if (vp.getAttribute('content') !== desired) {
+                vp.setAttribute('content', desired);
+            }
+        }
+        fixViewport();
+        setInterval(fixViewport, 1000);
+
         // ---- 1. Custom scroll indicator ----
         function ensureThumb() {
             var thumb = doc.getElementById('ck-scroll-thumb');
