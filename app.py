@@ -7,7 +7,7 @@ import io
 import os
 import time
 import base64
-
+# My app
 from CoolProp.CoolProp import PhaseSI, PropsSI
 
 APP_NAME = "Curious Kelvin"
