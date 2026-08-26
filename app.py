@@ -1297,10 +1297,8 @@ def generate_dome(fluid):
     return data
 dome = generate_dome(fluid)
 plot_config = {
-    # Autoscale (+ the custom fullscreen ⛶ button injected on each chart
-    # separately) is all that's left in the modebar now — Pan is removed
-    # per request, on top of the box-zoom/zoom-in/out/reset-axes/download
-    # buttons already dropped earlier.
+    # Keep the existing Plotly modebar/buttons exactly as they are.
+    # scrollZoom enables touch pinch zoom without adding another button.
     'displayModeBar': True,
     'responsive': True,
     'scrollZoom': True,
@@ -1315,11 +1313,8 @@ layout_common = dict(
     template='plotly_dark' if _is_dark() else 'plotly_white',
     height=600,  
     hovermode='closest',
-    # Panning removed: with no explicit dragmode, Plotly defaults to letting
-    # a click-drag (or single-finger drag on touch) pan/box-zoom the chart
-    # directly, bypassing the modebar entirely — dragmode=False turns that
-    # off so dragging does nothing, leaving pinch/wheel zoom (scrollZoom,
-    # still on above) and tap-for-tooltip as the only chart interactions.
+    # Do not allow one-finger dragging/panning on the graph.
+    # Keep this disabled while scrollZoom handles the two-finger pinch gesture.
     dragmode=False,
     # A finger is far less precise than a mouse pointer, so the default
     # ~20px hover-detection radius is too tight for tap-to-see-tooltip on a
