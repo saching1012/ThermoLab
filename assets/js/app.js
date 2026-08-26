@@ -75,6 +75,25 @@
         }
     }
 
+    function fixViewport() {
+
+        const desired =
+            "width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes";
+
+        let viewport =
+            doc.querySelector('meta[name="viewport"]');
+
+        if (!viewport) {
+            viewport = doc.createElement("meta");
+            viewport.name = "viewport";
+            doc.head.appendChild(viewport);
+        }
+
+        if (viewport.getAttribute("content") !== desired) {
+            viewport.setAttribute("content", desired);
+        }
+    }
+
     function fixTopNavigation() {
         const nav =
             doc.querySelector(".st-key-topnav");
@@ -319,6 +338,7 @@
     function initialize() {
         injectStyle();
         ensureManifest();
+        fixViewport();
         hideBadges();
         fixTopNavigation();
         wireNavigation();
@@ -333,6 +353,8 @@
                     hideBadges();
                     fixTopNavigation();
                     wireNavigation();
+
+                    fixViewport();
                 });
             });
 
