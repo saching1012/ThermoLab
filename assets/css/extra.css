@@ -13,17 +13,27 @@ html, body {
     padding: 0 !important;
 }
 
-html, body {
-    height: 100% !important;
-}
+/* Scrolling fix, take 3 — the previous attempt made the INNER Streamlit
+   container (stAppViewContainer/stMain) its own fixed-height, separately
+   scrollable region. That was the wrong target: this app already has a
+   working, correctly-designed scroll indicator (see the guaranteed-inline
+   script in app.py) that measures TOP-LEVEL document scroll via
+   `document.scrollingElement` — turning the inner container into its own
+   nested scroll context meant all the overflow got absorbed there instead
+   of ever reaching the real page/document, so the existing indicator saw
+   nothing to scroll (hence "invisible"), and on this WebView, touch-swipe
+   delivery to a nested scroll region turned out to be unreliable too
+   (hence "not working" for actual scrolling as well). Fix: let these
+   containers size to their natural content height and NOT claim their own
+   overflow context, so content flows up into the real page/document —
+   the one scroll region every browser/WebView handles reliably. */
 [data-testid="stAppViewContainer"],
 div[data-testid="stMain"],
 section[data-testid="stMain"],
 [data-testid="stMainBlockContainer"] {
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
 }
 
 header[data-testid="stHeader"] {
@@ -51,12 +61,15 @@ section.main {
     z-index: 1000 !important;
 }
 
+/* Scrollbar is now fully invisible (0px, transparent) rather than a thin
+   visible blue bar — scrolling itself still works exactly the same via
+   swipe/wheel, only the visual track/thumb are gone. */
 html, body, .stApp,
 [data-testid="stAppViewContainer"],
 div[class*="st-key-fig"],
 div[data-testid="stTable"] {
-    scrollbar-width: none;   
-    -ms-overflow-style: none;   
+    scrollbar-width: none;      /* Firefox */
+    -ms-overflow-style: none;   /* old Edge/IE */
 }
 
 ::-webkit-scrollbar {
@@ -88,6 +101,13 @@ div[class*="st-key-fig"] {
     padding: 10px 4px 2px 4px !important;
     box-sizing: border-box;
 }
+
+/* Pinch-to-zoom on charts, finger-only, no button: pan-y (not "none")
+   explicitly hands single-finger vertical dragging back to the browser so
+   the page still scrolls normally when a swipe starts over a chart, while
+   deliberately NOT reserving the pinch (two-finger) gesture for the
+   browser — that leaves it free for Plotly's own scrollZoom handler
+   (already enabled in plot_config) to capture and zoom the chart data. */
 div[class*="st-key-fig"] .js-plotly-plot,
 div[class*="st-key-fig"] .svg-container {
     touch-action: pan-y !important;
