@@ -176,6 +176,22 @@ components.html(
                 chart.appendChild(btn);
             });
         }
+        // ---- 3. Keep touch gestures inside Plotly charts ----
+        // Normal page scrolling remains available. Plotly receives the
+        // chart gesture so two-finger pinch can zoom the graph.
+        function enableChartPinchZoom() {
+            var charts = doc.querySelectorAll('[data-testid="stPlotlyChart"]');
+            charts.forEach(function (chart) {
+                chart.style.touchAction = 'pan-y';
+                var graph = chart.querySelector('.js-plotly-plot, .plotly');
+                if (graph) {
+                    graph.style.touchAction = 'pan-y';
+                }
+            });
+        }
+        enableChartPinchZoom();
+        setInterval(enableChartPinchZoom, 500);
+
         addFullscreenButtons();
         setInterval(addFullscreenButtons, 1000);
     })();
@@ -1297,30 +1313,26 @@ def generate_dome(fluid):
     return data
 dome = generate_dome(fluid)
 plot_config = {
-    # Autoscale (+ the custom fullscreen ⛶ button injected on each chart
-    # separately) is all that's left in the modebar now — Pan is removed
-    # per request, on top of the box-zoom/zoom-in/out/reset-axes/download
-    # buttons already dropped earlier.
-    'displayModeBar': True,
+    # Touch-first Plotly interaction:
+    # two-finger pinch = zoom in/out, one-finger drag = pan,
+    # mouse wheel = zoom. Zoom/pan/reset buttons stay hidden.
+    'displayModeBar': False,
     'responsive': True,
     'scrollZoom': True,
     'doubleClick': 'reset+autosize',
     'displaylogo': False,
     'modeBarButtonsToRemove': [
         'toImage', 'zoom2d', 'pan2d', 'select2d', 'lasso2d',
-        'zoomIn2d', 'zoomOut2d', 'resetScale2d',
+        'zoomIn2d', 'zoomOut2d', 'resetScale2d', 'autoScale2d',
     ],
 }
 layout_common = dict(
     template='plotly_dark' if _is_dark() else 'plotly_white',
     height=600,  
     hovermode='closest',
-    # Panning removed: with no explicit dragmode, Plotly defaults to letting
-    # a click-drag (or single-finger drag on touch) pan/box-zoom the chart
-    # directly, bypassing the modebar entirely — dragmode=False turns that
-    # off so dragging does nothing, leaving pinch/wheel zoom (scrollZoom,
-    # still on above) and tap-for-tooltip as the only chart interactions.
-    dragmode=False,
+    # Keep Plotly in touch-friendly pan mode. With scrollZoom enabled,
+    # Plotly can receive the two-finger pinch gesture on mobile/WebView.
+    dragmode='pan',
     # A finger is far less precise than a mouse pointer, so the default
     # ~20px hover-detection radius is too tight for tap-to-see-tooltip on a
     # phone — widen it so a tap near a curve/marker still registers.
