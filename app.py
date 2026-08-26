@@ -85,30 +85,107 @@ components.html(
     (function () {
         var doc = window.top.document;
 
-        // ---- 0. Pinch-to-zoom on charts. Streamlit ships its own
-        // <meta name="viewport"> tag with user-scalable=no by default —
-        // that's a BROWSER-level restriction, above any page CSS, so no
-        // touch-action rule on the chart elements could ever undo it: the
-        // browser refuses the pinch gesture before it reaches Plotly's own
-        // JS handler at all. This rewrites that tag directly. Placed in
-        // THIS guaranteed-inline script (not the separate assets/js/app.js
-        // file) because that external file depends on a correct upload/
-        // deploy path that has proven unreliable to verify from here —
-        // this block ships inside app.py itself and cannot go missing. ----
-        function fixViewport() {
-            var desired = 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes';
-            var vp = doc.querySelector('meta[name="viewport"]');
-            if (!vp) {
-                vp = doc.createElement('meta');
-                vp.name = 'viewport';
-                doc.head.appendChild(vp);
+        // ---- 0. Graph-only two-finger pinch zoom -----------------------
+        // Do NOT change the page viewport.  The gesture is intercepted only
+        // while two fingers are inside a Plotly graph and the graph ranges
+        // are changed directly with Plotly.relayout(). One-finger dragging
+        // is not handled here.
+        var pinchState = new WeakMap();
+
+        function getPlot(chart) {
+            return chart.querySelector('.js-plotly-plot');
+        }
+
+        function touchDistance(a, b) {
+            var dx = b.clientX - a.clientX;
+            var dy = b.clientY - a.clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function clamp(v, lo, hi) {
+            return Math.max(lo, Math.min(hi, v));
+        }
+
+        function pinchZoom(plot, touches, state) {
+            if (!plot || !plot._fullLayout || touches.length < 2) return;
+
+            var rect = plot.getBoundingClientRect();
+            var t1 = touches[0], t2 = touches[1];
+            var distance = touchDistance(t1, t2);
+            if (!state.lastDistance || distance <= 0) {
+                state.lastDistance = distance;
+                return;
             }
-            if (vp.getAttribute('content') !== desired) {
-                vp.setAttribute('content', desired);
+
+            // Fingers moving apart => zoom in. Fingers moving together => zoom out.
+            var factor = state.lastDistance / distance;
+            factor = clamp(factor, 0.90, 1.10);
+            state.lastDistance = distance;
+
+            var cx = ((t1.clientX + t2.clientX) / 2) - rect.left;
+            var cy = ((t1.clientY + t2.clientY) / 2) - rect.top;
+            var xaxis = plot._fullLayout.xaxis;
+            var yaxis = plot._fullLayout.yaxis;
+            var updates = {};
+
+            function zoomRange(axis, pixel, length, key) {
+                if (!axis || !axis.range || axis.range.length !== 2) return;
+                var r0 = axis.range[0], r1 = axis.range[1];
+                var frac = clamp(pixel / Math.max(length, 1), 0, 1);
+                var center = r0 + (r1 - r0) * frac;
+                var n0 = center + (r0 - center) * factor;
+                var n1 = center + (r1 - center) * factor;
+                if (Math.abs(n1 - n0) > 1e-12) {
+                    updates[key + '.range'] = [n0, n1];
+                }
+            }
+
+            zoomRange(xaxis, cx, rect.width, 'xaxis');
+            zoomRange(yaxis, rect.height - cy, rect.height, 'yaxis');
+
+            if (Object.keys(updates).length) {
+                Plotly.relayout(plot, updates);
             }
         }
-        fixViewport();
-        setInterval(fixViewport, 1000);
+
+        function wirePinchZoom() {
+            var charts = doc.querySelectorAll('[data-testid="stPlotlyChart"]');
+            charts.forEach(function (chart) {
+                if (chart.dataset.ckPinchWired) return;
+                var plot = getPlot(chart);
+                if (!plot) return;
+                chart.dataset.ckPinchWired = '1';
+
+                var state = { lastDistance: 0 };
+                pinchState.set(chart, state);
+
+                // This is deliberately attached ONLY to the graph container.
+                chart.addEventListener('touchstart', function (e) {
+                    if (e.touches.length === 2) {
+                        state.lastDistance = touchDistance(e.touches[0], e.touches[1]);
+                    }
+                }, { passive: true });
+
+                chart.addEventListener('touchmove', function (e) {
+                    if (e.touches.length !== 2) return;
+                    var currentPlot = getPlot(chart);
+                    if (!currentPlot) return;
+                    // Prevent the browser/page from interpreting this as page
+                    // pinch/scroll, but ONLY for a two-finger gesture on a graph.
+                    e.preventDefault();
+                    pinchZoom(currentPlot, e.touches, state);
+                }, { passive: false });
+
+                chart.addEventListener('touchend', function (e) {
+                    if (e.touches.length < 2) state.lastDistance = 0;
+                }, { passive: true });
+                chart.addEventListener('touchcancel', function () {
+                    state.lastDistance = 0;
+                }, { passive: true });
+            });
+        }
+        wirePinchZoom();
+        setInterval(wirePinchZoom, 500);
 
         // ---- 1. Custom scroll indicator ----
         function ensureThumb() {
@@ -1297,8 +1374,10 @@ def generate_dome(fluid):
     return data
 dome = generate_dome(fluid)
 plot_config = {
-    # Keep the existing Plotly modebar/buttons exactly as they are.
-    # scrollZoom enables touch pinch zoom without adding another button.
+    # Autoscale (+ the custom fullscreen ⛶ button injected on each chart
+    # separately) is all that's left in the modebar now — Pan is removed
+    # per request, on top of the box-zoom/zoom-in/out/reset-axes/download
+    # buttons already dropped earlier.
     'displayModeBar': True,
     'responsive': True,
     'scrollZoom': True,
@@ -1313,8 +1392,11 @@ layout_common = dict(
     template='plotly_dark' if _is_dark() else 'plotly_white',
     height=600,  
     hovermode='closest',
-    # Do not allow one-finger dragging/panning on the graph.
-    # Keep this disabled while scrollZoom handles the two-finger pinch gesture.
+    # Panning removed: with no explicit dragmode, Plotly defaults to letting
+    # a click-drag (or single-finger drag on touch) pan/box-zoom the chart
+    # directly, bypassing the modebar entirely — dragmode=False turns that
+    # off so dragging does nothing, leaving pinch/wheel zoom (scrollZoom,
+    # still on above) and tap-for-tooltip as the only chart interactions.
     dragmode=False,
     # A finger is far less precise than a mouse pointer, so the default
     # ~20px hover-detection radius is too tight for tap-to-see-tooltip on a
