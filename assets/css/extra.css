@@ -12,13 +12,18 @@ html, body {
     margin: 0 !important;
     padding: 0 !important;
 }
-html, body, .stApp,
+
+html, body {
+    height: 100% !important;
+}
 [data-testid="stAppViewContainer"],
-[data-testid="stAppViewContainer"] > .main,
-.stMainBlockContainer, .stMain, section.main {
+div[data-testid="stMain"],
+section[data-testid="stMain"],
+[data-testid="stMainBlockContainer"] {
+    height: 100vh !important;
+    max-height: 100vh !important;
     overflow-y: auto !important;
-    height: auto !important;
-    min-height: 100% !important;
+    -webkit-overflow-scrolling: touch !important;
 }
 
 header[data-testid="stHeader"] {
@@ -50,8 +55,8 @@ html, body, .stApp,
 [data-testid="stAppViewContainer"],
 div[class*="st-key-fig"],
 div[data-testid="stTable"] {
-    scrollbar-width: none;     
-    -ms-overflow-style: none;  
+    scrollbar-width: none;   
+    -ms-overflow-style: none;   
 }
 
 ::-webkit-scrollbar {
@@ -83,7 +88,6 @@ div[class*="st-key-fig"] {
     padding: 10px 4px 2px 4px !important;
     box-sizing: border-box;
 }
-
 div[class*="st-key-fig"] .js-plotly-plot,
 div[class*="st-key-fig"] .svg-container {
     touch-action: pan-y !important;
