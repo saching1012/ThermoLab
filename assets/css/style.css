@@ -799,34 +799,26 @@ div.stMarkdown:has(> .ck-home-subtext) {
 }
 
 /* ---- Home cards: ONE column only, centered like a native mobile app,
-   at every screen width (phone, tablet, or desktop browser window). ---- */
+   at every screen width (phone, tablet, or desktop browser window).
+   NOTE: these cards no longer sit inside st.columns() at all (see
+   render_welcome() in app.py) — each one is its own standalone element,
+   so there's no Streamlit column/grid layout left to override here.
+   That's a more reliable fix than fighting Streamlit's own column
+   sizing with flex/grid CSS overrides, which could still lose on real
+   narrow-viewport devices where Streamlit applies its own layout via
+   inline styles that out-rank an external stylesheet. ---- */
 .st-key-iconrow_welcome {
     max-width: 480px;
     margin-left: auto !important;
     margin-right: auto !important;
     margin-bottom: 32px !important;
 }
-/* This is the actual fix for the cards staying side-by-side: newer
-   Streamlit versions render st.columns() as a CSS GRID
-   (grid-template-columns: 1fr 1fr for a 2-column row), not flexbox — so
-   "flex-direction: column" alone is a no-op here, it has nothing to act
-   on. display:flex forces it into a real flex container so
-   flex-direction takes effect; grid-template-columns:1fr is set too as a
-   belt-and-suspenders fallback in case flex ever gets overridden. */
-.st-key-iconrow_welcome [data-testid="stHorizontalBlock"] {
-    display: flex !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
+.st-key-iconrow_welcome .dash-card-link {
+    display: block;
+    margin-bottom: 16px;
 }
-.st-key-iconrow_welcome [data-testid="column"],
-.st-key-iconrow_welcome [data-testid="stColumn"] {
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: 1 1 100% !important;
-    grid-column: 1 / -1 !important;
-    min-width: 0 !important;
+.st-key-iconrow_welcome .dash-card-link:last-child {
+    margin-bottom: 0;
 }
 .dash-card-v2 {
     width: 100% !important;
