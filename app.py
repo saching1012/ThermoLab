@@ -834,24 +834,24 @@ st.markdown(f"<style>{_MOBILE_APP_CSS}</style>", unsafe_allow_html=True)
 # the actual app appears. Rendered after the theme CSS above so its
 # colors match whichever theme is active.
 # ---------------------------------------------------------------------
-if "splash_done" not in st.session_state:
-    st.session_state.splash_done = False
-if not st.session_state.splash_done:
-    _splash_bg = "#14100c" if _is_dark() else "#fbf4e8"
-    _splash_name_c = "#f2f6fa" if _is_dark() else "#17120a"
-    _splash_quote_c = "#9fb3c2" if _is_dark() else "#5c4f3d"
-    _splash_logo = _img_data_uri(LOGO_PATH)
-    st.markdown(
-        f'<div class="ck-splash" style="background:{_splash_bg};">'
-        f'<img class="ck-splash-logo" src="{_splash_logo}" alt="{APP_NAME}" />'
-        f'<div class="ck-splash-name" style="color:{_splash_name_c};">{APP_NAME}</div>'
-        f'<div class="ck-splash-quote" style="color:{_splash_quote_c};">&ldquo;{APP_QUOTE}&rdquo;</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-    time.sleep(1.8)
-    st.session_state.splash_done = True
-    st.rerun()
+# if "splash_done" not in st.session_state:
+#     st.session_state.splash_done = False
+# if not st.session_state.splash_done:
+#     _splash_bg = "#14100c" if _is_dark() else "#fbf4e8"
+#     _splash_name_c = "#f2f6fa" if _is_dark() else "#17120a"
+#     _splash_quote_c = "#9fb3c2" if _is_dark() else "#5c4f3d"
+#     _splash_logo = _img_data_uri(LOGO_PATH)
+#     st.markdown(
+#         f'<div class="ck-splash" style="background:{_splash_bg};">'
+#         f'<img class="ck-splash-logo" src="{_splash_logo}" alt="{APP_NAME}" />'
+#         f'<div class="ck-splash-name" style="color:{_splash_name_c};">{APP_NAME}</div>'
+#         f'<div class="ck-splash-quote" style="color:{_splash_quote_c};">&ldquo;{APP_QUOTE}&rdquo;</div>'
+#         '</div>',
+#         unsafe_allow_html=True
+#     )
+#     time.sleep(1.8)
+#     st.session_state.splash_done = True
+#     st.rerun()
 
 _sidebar_open = st.session_state.get("sidebar_open", False)
 # NOTE: the "Close menu" button below is now ALWAYS rendered (same key,
