@@ -830,28 +830,172 @@ section[data-testid="stSidebar"] * {
 st.markdown(f"<style>{_MOBILE_APP_CSS}</style>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------
-# Splash screen — logo + tagline, shown once per browser session before
-# the actual app appears. Rendered after the theme CSS above so its
-# colors match whichever theme is active.
+# HOME_MOBILE_CSS — mobile-first redesign of the app bar and the
+# "What do you want to work on?" home screen (Fluids / Cycle cards).
+# Loaded last so it wins the cascade over the theme/extra stylesheets
+# and the block above. Pure CSS (+ two small HTML swaps in
+# render_welcome/render_header below) — no functionality, navigation,
+# calculations or backend logic is touched.
 # ---------------------------------------------------------------------
-# if "splash_done" not in st.session_state:
-#     st.session_state.splash_done = False
-# if not st.session_state.splash_done:
-#     _splash_bg = "#14100c" if _is_dark() else "#fbf4e8"
-#     _splash_name_c = "#f2f6fa" if _is_dark() else "#17120a"
-#     _splash_quote_c = "#9fb3c2" if _is_dark() else "#5c4f3d"
-#     _splash_logo = _img_data_uri(LOGO_PATH)
-#     st.markdown(
-#         f'<div class="ck-splash" style="background:{_splash_bg};">'
-#         f'<img class="ck-splash-logo" src="{_splash_logo}" alt="{APP_NAME}" />'
-#         f'<div class="ck-splash-name" style="color:{_splash_name_c};">{APP_NAME}</div>'
-#         f'<div class="ck-splash-quote" style="color:{_splash_quote_c};">&ldquo;{APP_QUOTE}&rdquo;</div>'
-#         '</div>',
-#         unsafe_allow_html=True
-#     )
-#     time.sleep(1.8)
-#     st.session_state.splash_done = True
-#     st.rerun()
+_HOME_MOBILE_CSS = """
+/* ---- App bar: 56-64px tall, 16px horizontal padding, vertically centered ---- */
+.st-key-topnav {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    margin-left: -16px !important;
+    margin-right: -16px !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+.st-key-topnav [data-testid="stHorizontalBlock"] {
+    align-items: center !important;
+    min-height: 56px !important;
+    max-height: 64px !important;
+    width: 100%;
+}
+.st-key-topnav [data-testid="column"] {
+    display: flex !important;
+    align-items: center !important;
+}
+.st-key-topnav .app-header {
+    display: flex !important;
+    align-items: center !important;
+    width: 100%;
+    height: 100%;
+}
+.st-key-topnav .app-header .brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px;
+}
+/* The prev/back arrow is disabled (inert) on the home screen — hide it
+   there so the bar reads as logo-left / hamburger-right, without
+   removing the button or changing its behavior on screens where it's
+   enabled and functional. */
+.st-key-topnav button:disabled {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+@media (max-width: 640px) {
+    .block-container {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+}
+
+/* ---- Home heading + subtext ---- */
+.ck-home-heading {
+    font-size: 30px !important;
+    font-weight: 700 !important;
+    line-height: 1.18 !important;
+    margin: 0 !important;
+}
+.ck-home-subtext {
+    font-size: 14.5px !important;
+    line-height: 1.4 !important;
+    opacity: 0.62;
+    margin: 0 !important;
+}
+div.stMarkdown:has(> .ck-home-heading) {
+    margin-top: 24px !important;
+    margin-bottom: 4px !important;
+}
+div.stMarkdown:has(> .ck-home-subtext) {
+    margin-top: 0 !important;
+    margin-bottom: 24px !important;
+}
+
+/* ---- Home cards: single column on mobile, 2-column grid from tablet up ---- */
+.st-key-iconrow_welcome {
+    margin-bottom: 32px !important;
+}
+.st-key-iconrow_welcome [data-testid="stHorizontalBlock"] {
+    flex-direction: column !important;
+    gap: 16px !important;
+}
+.st-key-iconrow_welcome [data-testid="column"] {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+}
+@media (min-width: 641px) {
+    .st-key-iconrow_welcome [data-testid="stHorizontalBlock"] {
+        flex-direction: row !important;
+    }
+    .st-key-iconrow_welcome [data-testid="column"] {
+        width: 50% !important;
+        flex: 1 1 50% !important;
+    }
+}
+.dash-card-link {
+    display: block;
+    text-decoration: none !important;
+    width: 100%;
+}
+.dash-card-v2 {
+    width: 100% !important;
+    max-width: none !important;
+    border-radius: 18px !important;
+    border-width: 1px;
+    border-style: solid;
+    box-shadow: 0 2px 10px rgba(20, 16, 12, 0.08);
+    overflow: hidden;
+    min-height: 112px;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.dash-card-v2:active {
+    transform: scale(0.985);
+    box-shadow: 0 1px 4px rgba(20, 16, 12, 0.08);
+}
+.dash-card-v2-img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+}
+.dash-card-v2-body {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px;
+    padding: 14px 40px 14px 16px !important;
+    position: relative;
+}
+.dash-card-v2-body .icon {
+    font-size: 20px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.dash-card-v2-body .txt {
+    min-width: 0;
+}
+.dash-card-v2-body .txt h3 {
+    font-size: 19px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+}
+.dash-card-v2-body .txt p {
+    font-size: 14.5px !important;
+    line-height: 1.35 !important;
+}
+/* Tap-affordance chevron */
+.dash-card-v2-body::after {
+    content: "\\203A";
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    font-weight: 700;
+    opacity: 0.35;
+}
+"""
+st.markdown(f"<style>{_HOME_MOBILE_CSS}</style>", unsafe_allow_html=True)
+
+# Splash screen removed — the app now opens straight to the home screen.
 
 _sidebar_open = st.session_state.get("sidebar_open", False)
 # NOTE: the "Close menu" button below is now ALWAYS rendered (same key,
@@ -967,8 +1111,8 @@ def render_cycle_type_select():
     render_footer()
 def render_welcome():
     render_header("")
-    st.markdown("### What do you want to work on?")
-    st.caption("Tap a card to continue")
+    st.markdown('<h2 class="ck-home-heading">What do you want to work on?</h2>', unsafe_allow_html=True)
+    st.markdown('<p class="ck-home-subtext">Choose a topic to start learning.</p>', unsafe_allow_html=True)
     hc1, hc2 = st.container(key="iconrow_welcome").columns(2, gap="small")
 
     # Photos (base64 data URIs) and per-theme colors used in the card HTML
