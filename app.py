@@ -775,7 +775,6 @@ def render_welcome():
     render_header("")
     st.markdown('<h2 class="ck-home-heading">What do you want to work on?</h2>', unsafe_allow_html=True)
     st.markdown('<p class="ck-home-subtext">Choose a topic to start learning.</p>', unsafe_allow_html=True)
-    hc1, hc2 = st.container(key="iconrow_welcome").columns(2, gap="small")
 
     # Photos (base64 data URIs) and per-theme colors used in the card HTML
     _fluid_photo = _img_data_uri(FLUID_IMG_PATH)
@@ -785,7 +784,17 @@ def render_welcome():
     _card_title_c = "#f2f6fa" if _is_dark() else "#17120a"
     _card_sub_c = "#b3a690" if _is_dark() else "#5c4f3d"
 
-    with hc1:
+    # NOTE: these two cards used to sit in a 2-column st.columns() row, with
+    # CSS trying to force that row to collapse into one column on phones.
+    # On real narrow-viewport devices Streamlit's own column layout kept
+    # winning that fight (it can apply its sizing via inline styles that
+    # out-rank a plain external stylesheet). Removing st.columns()
+    # entirely sidesteps that: each card below is now its own standalone
+    # st.markdown() call, one after another, with no column/grid construct
+    # for Streamlit to lay out — so they simply stack top-to-bottom like
+    # any two consecutive blocks of content, the same way on every browser
+    # and every screen size, with nothing left to override.
+    with st.container(key="iconrow_welcome"):
         st.markdown(
             f"""
             <a class="dash-card-link" href="?mode=explorer&{_theme_qs()}" target="_self">
@@ -803,8 +812,6 @@ def render_welcome():
             """,
             unsafe_allow_html=True,
         )
-
-    with hc2:
         st.markdown(
             f"""
             <a class="dash-card-link" href="?mode=cycles&{_theme_qs()}" target="_self">
