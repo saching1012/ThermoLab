@@ -48,6 +48,19 @@ def _read_text_asset(path):
         return ""
 
 
+def _logo_img_html(css_class):
+    """Build the brand <img> tag, or an empty string if the logo asset
+    couldn't be found. A missing/empty src on an <img> still renders a
+    broken-image glyph with the alt text crammed into a tiny fixed-size
+    box (this is what a "garbled little icon" next to the brand name
+    usually is) — skipping the tag entirely when there's no real image
+    avoids that, and just leaves the brand text on its own."""
+    uri = _img_data_uri(LOGO_ICON_PATH)
+    if not uri:
+        return ""
+    return f'<img class="{css_class}" src="{uri}" alt="logo" />'
+
+
 _page_icon = LOGO_ICON_PATH if os.path.exists(LOGO_ICON_PATH) else "🧪"
 st.set_page_config(
     page_title=APP_NAME,
@@ -867,11 +880,10 @@ def render_header(active_label):
                 st.session_state.wizard_step = wsteps[idx - 1]
                 st.rerun()
         with c_brand:
-            _logo_uri = _img_data_uri(LOGO_ICON_PATH)
             _active_html = f'<span class="active">{active_label}</span>' if active_label else ''
             st.markdown(
                 '<div class="app-header"><div class="brand">'
-                f'<img class="brand-logo top-logo" src="{_logo_uri}" alt="logo" />'
+                f'{_logo_img_html("brand-logo top-logo")}'
                 f'<div class="txt">{APP_NAME}{_active_html}</div></div></div>',
                 unsafe_allow_html=True
             )
@@ -895,9 +907,8 @@ def render_nav_sidebar():
                 st.session_state.sidebar_open = False
                 st.rerun()
         with _sb_brand_col:
-            _sb_logo_uri = _img_data_uri(LOGO_ICON_PATH)
             st.markdown(
-                f'<div class="nav-brand"><img class="brand-logo nav-logo" src="{_sb_logo_uri}" alt="logo" />'
+                f'<div class="nav-brand">{_logo_img_html("brand-logo nav-logo")}'
                 f'<div class="txt">{APP_NAME}<small>Fluid &amp; Cycle Analysis</small></div></div>',
                 unsafe_allow_html=True
             )
