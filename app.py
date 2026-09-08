@@ -1432,7 +1432,7 @@ def _render_power_cycle_analysis_body():
                             y=T_boiler,
                             mode='lines',
                             line=dict(color=tc()['boiler'], width=4),
-                            name='2→3 Boiler (Constant P)',
+                            name='2→3 Boiler',
                             hovertemplate=(
                                 f"<b>Boiler 2→3 — Constant Pressure</b>"
                                 f"<br>s: %{{x:.4f}} {s_u_rk}"
@@ -1446,7 +1446,7 @@ def _render_power_cycle_analysis_body():
                             y=[T2c, T3c],
                             mode='lines',
                             line=dict(color=tc()['boiler'], width=4),
-                            name='2→3 Boiler (Constant P)'
+                            name='2→3 Boiler'
                         ))
                     turbine_hover = (
                         f"<b>Turbine 3→4</b>"
@@ -1983,7 +1983,7 @@ def _render_power_cycle_analysis_body():
                     boiler_s = [s_boilerin, s_satliq_boiler, s_satvap_boiler, s_in / 1000]
                     boiler_T = [T_boilerin, Tsat_boiler, Tsat_boiler, T_main_r - 273.15]
                     fig_rg.add_trace(go.Scatter(x=boiler_s, y=boiler_T, mode='lines',
-                                                 line=dict(color=tc()['boiler'], width=4), name='Boiler (Preheat + Boil + Superheat)'))
+                                                 line=dict(color=tc()['boiler'], width=4), name='Boiler'))
 
                     
                     red_s, red_T, red_lbl = [], [], []
