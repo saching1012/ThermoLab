@@ -1207,6 +1207,15 @@ layout_common = dict(
         y=-0.22,
         xanchor='center',
         x=0.5,
+        # Plotly's auto-wrapping for a horizontal legend fits items per
+        # row purely based on each entry's own text width — so "2→3
+        # Boiler (Constant P)" (T-s) and "2→3 Boiler" (P-h) wrap
+        # differently even though both charts have 6 legend entries.
+        # entrywidth/entrywidthmode pins every entry to exactly half the
+        # legend's width, forcing a real, consistent 2-per-row grid on
+        # every chart regardless of how long any one label happens to be.
+        entrywidth=0.5,
+        entrywidthmode='fraction',
         font=dict(size=10, color=tc()['label_text'])
     ),
     margin=dict(l=60, r=40, t=50, b=115)
@@ -1217,6 +1226,7 @@ layout_common_grid.update(
     margin=dict(l=54, r=20, t=42, b=88),
     legend=dict(
         orientation='h', yanchor='top', y=-0.2, xanchor='center', x=0.5,
+        entrywidth=0.5, entrywidthmode='fraction',
         font=dict(size=10, color=tc()['label_text'])
     ),
 )
