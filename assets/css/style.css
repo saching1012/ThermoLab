@@ -772,10 +772,10 @@ section[data-testid="stSidebar"] * {
 }
 .st-key-topnav [data-testid="column"],
 .st-key-topnav [data-testid="stColumn"] {
-    display: flex !important;
+    display: grid !important;
     align-items: center !important;
-    justify-content: center !important;
-    height: 100% !important;
+    justify-items: stretch !important;
+    height: 56px !important;
     overflow: visible !important;
 }
 /* The two utility iframes injected at the very top of the page (the
@@ -791,38 +791,26 @@ section[data-testid="stSidebar"] * {
 iframe[height="0"][width="0"] {
     display: none !important;
 }
-[data-testid="element-container"]:has(> iframe[height="0"][width="0"]) {
+[data-testid="element-container"]:has(iframe[height="0"][width="0"]) {
     display: none !important;
 }
-/* The DevTools screenshots showed .app-header measuring only 26px tall
-   inside the 56–64px bar, sitting flush at the top instead of centered
-   — Streamlit nests its own anonymous wrapper divs between the column
-   and .app-header, and whatever they're actually called in this
-   Streamlit version, none of them were passing height/centering
-   through. A follow-up attempt to fix that with position:absolute made
-   the whole thing disappear instead — the likely cause is one of those
-   same anonymous wrappers collapsing to zero height (since its only
-   child had just been pulled out of flow) while also clipping via
-   overflow, hiding an absolutely-positioned child rendered past its
-   edge. This version avoids both problems at once: rather than guess
-   at testid/class names again, it targets EVERY plain <div> inside the
-   column except the ones with their own known, correct styling
-   (.app-header/.brand/.txt), forcing all of them to stretch to full
-   height, center their single child, and never clip — all while
-   staying in normal flow, so there's nothing for an unknown ancestor
-   to clip in the first place. */
-.st-key-topnav [data-testid="column"]:nth-child(2) div:not(.app-header):not(.brand):not(.txt),
-.st-key-topnav [data-testid="stColumn"]:nth-child(2) div:not(.app-header):not(.brand):not(.txt) {
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    overflow: visible !important;
-}
+/* Every previous attempt at this tried to make .app-header STRETCH
+   through however many anonymous Streamlit wrapper divs sit between it
+   and the column (percentage-height cascade, then position:absolute,
+   then forcing height:100% on every div) — all of that only works if
+   EVERY level in an unknown-depth, unknown-named chain cooperates, and
+   evidently something in that chain still wasn't. Switching approach
+   entirely: the column above is now `display:grid` with
+   align-items/justify-items:center, which centers its direct child at
+   that child's OWN natural content size — it doesn't need that child
+   (or anything nested inside it) to stretch or declare a height at
+   all. As long as nothing inside forces its own stretch, the whole
+   .app-header block just centers as a unit, regardless of how many
+   unnamed wrapper divs Streamlit puts in between. */
 .st-key-topnav .app-header {
     display: flex !important;
     align-items: center !important;
     width: 100%;
-    height: 100%;
     overflow: visible !important;
     border-bottom: none !important;
     padding: 0 !important;
