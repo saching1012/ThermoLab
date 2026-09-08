@@ -244,15 +244,6 @@ div[class*="st-key-igrid_"] {
         width: 38% !important;
     }
 
-    /* NOTE: scoped to iconrow_cycle (the small square Rankine/Brayton tiles)
-       only — it used to be a blanket div[class*="st-key-iconrow_"] prefix
-       match, which also caught iconrow_welcome (the big Fluids/Cycle photo
-       cards) and silently forced them into a 2-up row on phones no matter
-       what later CSS said, because an attribute-prefix selector like
-       div[class*="..."] is MORE specific than a plain .st-key-iconrow_welcome
-       class selector, so it kept winning the cascade even against later
-       !important rules. iconrow_welcome now has its own always-single-column
-       rules further down this file. */
     .st-key-iconrow_cycle [data-testid="stHorizontalBlock"] {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
@@ -534,17 +525,6 @@ a.dash-card-link {
     }
 }
 
-/* overflow-x: hidden here (rather than "clip") used to create a scroll
-   container on .stApp, which is an ancestor of .st-key-topnav. Per spec,
-   ANY overflow value other than "visible" on an ancestor turns that
-   ancestor into position:sticky's containing block, instead of the real
-   viewport — so the sticky navbar sticks relative to that inner box, not
-   the page. Some engines (desktop Chrome) are forgiving about this;
-   stricter WebViews (Android app/PWA wrapper) are not, which is exactly
-   why the navbar only clips/cuts in the app version. "clip" avoids
-   creating that scroll container while still preventing horizontal
-   scroll, so it's used everywhere else in this file already (see below) —
-   applying it here too closes the last gap. */
 .stApp {
     overflow-x: clip;
 }
@@ -835,10 +815,9 @@ div.stMarkdown:has(> .ck-home-subtext) {
 .st-key-iconrow_welcome .dash-card-link {
     display: flex !important;
     justify-content: center !important;
-    margin-bottom: 28px;
 }
-.st-key-iconrow_welcome .dash-card-link:last-child {
-    margin-bottom: 0;
+.st-key-iconrow_welcome [data-testid="stVerticalBlock"] {
+    gap: 28px !important;
 }
 .dash-card-v2 {
     width: 100% !important;
