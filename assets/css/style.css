@@ -914,27 +914,32 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-right: auto !important;
 }
 
-/* Image = exactly half the card height, everything else (icon, text,
-   button) = the other half. This needs a fixed total card height for
-   "half" to mean anything — .dash-card-v2-img and .dash-card-v2-bottom
-   are the two flex children, each pinned to flex: 0 0 50%, so they
-   split that fixed height evenly regardless of how much text wraps.
-   Within the bottom half, justify-content:space-between keeps the text
-   anchored near the image and the button anchored near the card's
-   bottom edge, instead of both crowding together at the top. */
+/* Image = 60% of the card height, text+button = the remaining 40%.
+   This needs a fixed total card height for a percentage split to mean
+   anything — .dash-card-v2-img and .dash-card-v2-bottom are the two
+   flex children, pinned to flex: 0 0 60%/40%, so they split that fixed
+   height in that ratio regardless of how much text wraps. Total height
+   went up from 320px to 400px alongside the ratio change, so the 40%
+   bottom portion (160px) stays exactly as roomy as the old 50% (160px
+   of 320px) was — the text and button aren't being squeezed to make
+   room for a bigger image, the whole card just grew to fit both
+   properly. Within the bottom portion, justify-content:space-between
+   keeps the text anchored near the image and the button anchored near
+   the card's bottom edge, instead of both crowding together at the
+   top. */
 .st-key-iconrow_welcome .dash-card-v2 {
-    height: 320px !important;
+    height: 400px !important;
     display: flex !important;
     flex-direction: column !important;
 }
 .st-key-iconrow_welcome .dash-card-v2-img {
-    flex: 0 0 50% !important;
-    height: 50% !important;
+    flex: 0 0 60% !important;
+    height: 60% !important;
     min-height: 0 !important;
 }
 .st-key-iconrow_welcome .dash-card-v2-bottom {
-    flex: 0 0 50% !important;
-    height: 50% !important;
+    flex: 0 0 40% !important;
+    height: 40% !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
@@ -967,13 +972,17 @@ div.stMarkdown:has(> .ck-home-subtext) {
     padding: 4px 10px 4px 10px !important;
     justify-content: center !important;
     text-align: center !important;
+    width: 100% !important;
 }
 .st-key-iconrow_welcome .dash-card-v2-body .txt {
     text-align: center !important;
+    width: 100% !important;
 }
 .st-key-iconrow_welcome .dash-card-v2-body .txt h3 {
     font-size: 19px !important;
     line-height: 1.3 !important;
+    text-align: center !important;
+    width: 100% !important;
 }
 
 /* ---- "Explore" CTA button — replaces the old whole-card tap affordance.
