@@ -812,20 +812,20 @@ iframe[height="0"][width="0"] {
 }
 .st-key-topnav [data-testid="column"],
 .st-key-topnav [data-testid="stColumn"] {
-    height: 54px !important;
+    height: 56px !important;
     flex-shrink: 0 !important;
     padding: 0 !important;
 }
 .st-key-topnav button {
-    height: 54px !important;
-    width: 54px !important;
-    min-width: 54px !important;
+    height: 56px !important;
+    width: 56px !important;
+    min-width: 56px !important;
     flex-shrink: 0 !important;
-    font-size: 1.9em !important;
+    font-size: 2em !important;
 }
 .st-key-topnav .app-header,
 .st-key-topnav .app-header .brand {
-    height: 54px !important;
+    height: 56px !important;
 }
 /* Pin the prev button flush to the row's true left edge and the
    hamburger flush to its true right edge, regardless of button size —
