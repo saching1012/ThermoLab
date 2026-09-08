@@ -1,24 +1,3 @@
-/* =====================================================================
-   CURIOUS KELVIN — style.css
-   Single consolidated stylesheet for the Streamlit app's structural
-   layout, Streamlit-chrome cleanup, and responsive rules (mobile-first).
-   Loaded after the active theme file (theme_dark.css / theme_light.css),
-   so it wins the cascade for layout while the theme file still owns
-   colors.
-
-   Sections below (in cascade / load order):
-     1. Base reset      — hides Streamlit's own chrome (menu, header, footer)
-     2. Responsive       — breakpoints for the wizard flow, grids, sidebar
-     3. Extra            — typography, scrollbars, the dash-card-v2 cards
-     4. App shell         — sticky top bar, sidebar sizing/z-index, chart
-                            fullscreen fallback (previously an inline
-                            Python string inside app.py — moved here)
-     5. Home screen       — "What do you want to work on?" page: app bar
-                            sizing, heading/subtext, single-column
-                            Fluids/Cycle cards centered like a mobile app
-   ===================================================================== */
-
-/* ---- 1. Base reset (base_reset.css) ---- */
 #MainMenu {
     visibility: hidden;
     display: none;
@@ -54,7 +33,6 @@ footer {
     margin-top: 0 !important;
 }
 
-/* ---- 2. Responsive (responsive.css) ---- */
 .st-key-topnav {
     position: sticky !important;
     top: 0 !important;
@@ -265,15 +243,6 @@ div[class*="st-key-igrid_"] {
         width: 38% !important;
     }
 
-    /* NOTE: scoped to iconrow_cycle (the small square Rankine/Brayton tiles)
-       only — it used to be a blanket div[class*="st-key-iconrow_"] prefix
-       match, which also caught iconrow_welcome (the big Fluids/Cycle photo
-       cards) and silently forced them into a 2-up row on phones no matter
-       what later CSS said, because an attribute-prefix selector like
-       div[class*="..."] is MORE specific than a plain .st-key-iconrow_welcome
-       class selector, so it kept winning the cascade even against later
-       !important rules. iconrow_welcome now has its own always-single-column
-       rules further down this file. */
     .st-key-iconrow_cycle [data-testid="stHorizontalBlock"] {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
@@ -323,7 +292,6 @@ div[class*="st-key-igrid_"] {
     }
 }
 
-/* ---- 3. Extra (extra.css) ---- */
 html, body, .stApp {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                  "Helvetica Neue", Arial, sans-serif !important;
@@ -555,17 +523,6 @@ a.dash-card-link {
     }
 }
 
-/* overflow-x: hidden here (rather than "clip") used to create a scroll
-   container on .stApp, which is an ancestor of .st-key-topnav. Per spec,
-   ANY overflow value other than "visible" on an ancestor turns that
-   ancestor into position:sticky's containing block, instead of the real
-   viewport — so the sticky navbar sticks relative to that inner box, not
-   the page. Some engines (desktop Chrome) are forgiving about this;
-   stricter WebViews (Android app/PWA wrapper) are not, which is exactly
-   why the navbar only clips/cuts in the app version. "clip" avoids
-   creating that scroll container while still preventing horizontal
-   scroll, so it's used everywhere else in this file already (see below) —
-   applying it here too closes the last gap. */
 .stApp {
     overflow-x: clip;
 }
@@ -585,9 +542,6 @@ a.dash-card-link:focus-visible,
     outline-offset: 2px !important;
 }
 
-/* ---- 4. App shell (previously the inline _MOBILE_APP_CSS string in
-   app.py: scrollbar theming, sticky top bar, sidebar sizing/z-index,
-   and the chart-fullscreen fallback class) ---- */
 :root {
     scrollbar-color: rgba(128, 112, 92, 0.72) transparent;
     scrollbar-width: thin;
@@ -742,20 +696,6 @@ section[data-testid="stSidebar"] * {
     height: 100vh !important;
     width: 100vw !important;
 }
-/* =======================================================================
-   HOME SCREEN — mobile-first "What do you want to work on?" page
-   (app bar sizing, heading/subtext, and the Fluids/Cycle cards).
-   Loaded last in this file so it wins the cascade over everything above.
-   ======================================================================= */
-
-/* ---- App bar: 56-64px tall, 16px horizontal padding, vertically centered.
-   NOTE: deliberately NOT display:flex on this outer .st-key-topnav wrapper.
-   Streamlit nests a few unstyled layout divs between this element and the
-   actual row of columns below; forcing this outer one into flex made those
-   in-between divs shrink to fit their content instead of filling the page
-   width, which is what was squashing/cutting off the "Curious Kelvin" text.
-   Vertical centering is handled entirely by the stHorizontalBlock rule
-   right below, so the outer wrapper doesn't need flex at all. ---- */
 .st-key-topnav {
     padding-left: 16px !important;
     padding-right: 16px !important;
@@ -778,35 +718,12 @@ section[data-testid="stSidebar"] * {
     height: 56px !important;
     overflow: visible !important;
 }
-/* The two utility iframes injected at the very top of the page (the
-   ones running the Streamlit-chrome-cleanup / scroll-indicator /
-   chart-fullscreen JS) are 0×0 and invisible, but their wrapping
-   Streamlit element still normally takes up a slot in the page's flex
-   gap — this is the "hidden element above the logo" showing up in the
-   inspector. Removing them isn't an option (that JS is load-bearing
-   for a lot of what's already been fixed), but display:none takes them
-   out of layout entirely — hidden iframes still run their srcdoc
-   script normally, so nothing about their function changes, only their
-   footprint. */
 iframe[height="0"][width="0"] {
     display: none !important;
 }
 [data-testid="element-container"]:has(iframe[height="0"][width="0"]) {
     display: none !important;
 }
-/* Every previous attempt at this tried to make .app-header STRETCH
-   through however many anonymous Streamlit wrapper divs sit between it
-   and the column (percentage-height cascade, then position:absolute,
-   then forcing height:100% on every div) — all of that only works if
-   EVERY level in an unknown-depth, unknown-named chain cooperates, and
-   evidently something in that chain still wasn't. Switching approach
-   entirely: the column above is now `display:grid` with
-   align-items/justify-items:center, which centers its direct child at
-   that child's OWN natural content size — it doesn't need that child
-   (or anything nested inside it) to stretch or declare a height at
-   all. As long as nothing inside forces its own stretch, the whole
-   .app-header block just centers as a unit, regardless of how many
-   unnamed wrapper divs Streamlit puts in between. */
 .st-key-topnav .app-header {
     display: flex !important;
     align-items: center !important;
@@ -816,13 +733,6 @@ iframe[height="0"][width="0"] {
     padding: 0 !important;
     margin-bottom: 0 !important;
 }
-/* Belt-and-suspenders for the installed/standalone app version: on a
-   device with a notch or camera cutout, the OS status bar can sit on top
-   of a fixed/sticky bar with no browser chrome underneath it (unlike a
-   normal browser tab, which reserves that space itself). env() below
-   only ever returns non-zero when the page's own <meta viewport> includes
-   viewport-fit=cover, which the app's inline fixViewport() script now
-   sets — everywhere else this just falls back to the existing 8px. */
 @supports (padding-top: env(safe-area-inset-top)) {
     .st-key-topnav {
         padding-top: max(8px, env(safe-area-inset-top)) !important;
@@ -833,11 +743,7 @@ iframe[height="0"][width="0"] {
     align-items: center !important;
     gap: 10px;
 }
-/* Disabled buttons in the topnav (currently just the inert prev/back
-   arrow when there's no previous step) keep the browser's normal
-   greyed-out disabled look now, rather than being invisible — pointer
-   events are still blocked so it can't be tapped, but it's visible for
-   a consistent 3-item row on every page. */
+
 .st-key-topnav button:disabled {
     pointer-events: none !important;
 }
@@ -848,7 +754,6 @@ iframe[height="0"][width="0"] {
     }
 }
 
-/* ---- Home heading + subtext ---- */
 .ck-home-heading {
     font-size: 30px !important;
     font-weight: 700 !important;
@@ -876,15 +781,6 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-bottom: 24px !important;
 }
 
-/* ---- Home cards: ONE column only, centered like a native mobile app,
-   at every screen width (phone, tablet, or desktop browser window).
-   NOTE: these cards no longer sit inside st.columns() at all (see
-   render_welcome() in app.py) — each one is its own standalone element,
-   so there's no Streamlit column/grid layout left to override here.
-   That's a more reliable fix than fighting Streamlit's own column
-   sizing with flex/grid CSS overrides, which could still lose on real
-   narrow-viewport devices where Streamlit applies its own layout via
-   inline styles that out-rank an external stylesheet. ---- */
 .st-key-iconrow_welcome {
     max-width: 480px;
     width: 100%;
@@ -898,44 +794,28 @@ div.stMarkdown:has(> .ck-home-subtext) {
     padding-bottom: 4px;
     box-sizing: border-box;
 }
-/* display:flex + justify-content:center so the fixed-width card below
-   centers itself with visible margin on both sides, instead of a block
-   link stretching edge-to-edge and the card filling all of it.
-   NOTE: both cards are now emitted from ONE st.markdown() call in
-   app.py, so the two <a class="dash-card-link"> tags are guaranteed
-   true adjacent siblings in the actual DOM — no dependency on
-   Streamlit's own internal wrapper-div structure (which varies between
-   versions and is why earlier :last-child / nested-gap attempts here
-   didn't reliably land). The adjacent-sibling selector below only ever
-   matches the second card, so it's a plain, version-proof top margin. */
+
 .st-key-iconrow_welcome .dash-card-link {
 
     display: flex !important;
     justify-content: center !important;
 }
-/* This is Streamlit's own flex column that directly holds the two card
-   wrappers as siblings — kept as a harmless extra in case it applies,
-   but the adjacent-sibling rule below is the one actually guaranteed
-   to work regardless of Streamlit's internal DOM. */
+
 .st-key-iconrow_welcome [data-testid="stVerticalBlock"] {
     gap: 28px !important;
 }
-/* Guaranteed-to-work spacing: since both cards now come from one
-   st.markdown() call, this plain CSS sibling selector needs nothing
-   from Streamlit's own container structure at all. */
+
 .st-key-iconrow_welcome .dash-card-link + .dash-card-link {
     margin-top: 28px !important;
 }
-/* Fixed pixel width — deliberately NOT a percentage of the viewport —
-   so the card stays the same physical size on every screen instead of
-   stretching to fill it. Tweak the 300px if you want it wider/narrower. */
+
 .dash-card-v2 {
     width: 100% !important;
     max-width: 300px !important;
     margin-left: auto !important;
     margin-right: auto !important;
 }
-/* Tap-affordance chevron on the home cards */
+
 .st-key-iconrow_welcome .dash-card-v2-body {
     position: relative;
     padding-right: 34px !important;
