@@ -807,6 +807,16 @@ def render_welcome():
     # for Streamlit to lay out — so they simply stack top-to-bottom like
     # any two consecutive blocks of content, the same way on every browser
     # and every screen size, with nothing left to override.
+    #
+    # NOTE: both cards are now emitted from a SINGLE st.markdown() call
+    # (previously two separate calls). Two separate calls meant each
+    # <a class="dash-card-link"> was the only child of its own Streamlit
+    # wrapper div — real DOM siblings only as far as Streamlit's own
+    # internal container structure, which changes between versions and
+    # made CSS spacing between them unreliable to target. Emitting one
+    # HTML string makes them true, guaranteed adjacent siblings in the
+    # actual DOM, so plain CSS sibling selectors work regardless of
+    # whatever Streamlit wraps around the outside.
     with st.container(key="iconrow_welcome"):
         st.markdown(
             f"""
@@ -822,11 +832,6 @@ def render_welcome():
                   </div>
               </div>
             </a>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"""
             <a class="dash-card-link" href="?mode=cycles&{_theme_qs()}" target="_self">
               <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
                   <div class="dash-card-v2-img" style="background-image:url('{_cycle_photo}')"></div>
@@ -842,6 +847,7 @@ def render_welcome():
             """,
             unsafe_allow_html=True,
         )
+
 
     render_footer()
 def render_fluid_select():
