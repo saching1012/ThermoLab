@@ -534,12 +534,23 @@ a.dash-card-link {
     }
 }
 
+/* overflow-x: hidden here (rather than "clip") used to create a scroll
+   container on .stApp, which is an ancestor of .st-key-topnav. Per spec,
+   ANY overflow value other than "visible" on an ancestor turns that
+   ancestor into position:sticky's containing block, instead of the real
+   viewport — so the sticky navbar sticks relative to that inner box, not
+   the page. Some engines (desktop Chrome) are forgiving about this;
+   stricter WebViews (Android app/PWA wrapper) are not, which is exactly
+   why the navbar only clips/cuts in the app version. "clip" avoids
+   creating that scroll container while still preventing horizontal
+   scroll, so it's used everywhere else in this file already (see below) —
+   applying it here too closes the last gap. */
 .stApp {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 [data-testid="stAppViewContainer"] {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 .block-container {
@@ -750,6 +761,18 @@ section[data-testid="stSidebar"] * {
     padding: 0 !important;
     margin-bottom: 0 !important;
 }
+/* Belt-and-suspenders for the installed/standalone app version: on a
+   device with a notch or camera cutout, the OS status bar can sit on top
+   of a fixed/sticky bar with no browser chrome underneath it (unlike a
+   normal browser tab, which reserves that space itself). env() below
+   only ever returns non-zero when the page's own <meta viewport> includes
+   viewport-fit=cover, which the app's inline fixViewport() script now
+   sets — everywhere else this just falls back to the existing 8px. */
+@supports (padding-top: env(safe-area-inset-top)) {
+    .st-key-topnav {
+        padding-top: max(8px, env(safe-area-inset-top)) !important;
+    }
+}
 .st-key-topnav .app-header .brand {
     display: flex !important;
     align-items: center !important;
@@ -798,31 +821,30 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-bottom: 24px !important;
 }
 
-/* ---- Home cards: ONE column only, centered like a native mobile app,
-   at every screen width (phone, tablet, or desktop browser window).
-   NOTE: these cards no longer sit inside st.columns() at all (see
-   render_welcome() in app.py) — each one is its own standalone element,
-   so there's no Streamlit column/grid layout left to override here.
-   That's a more reliable fix than fighting Streamlit's own column
-   sizing with flex/grid CSS overrides, which could still lose on real
-   narrow-viewport devices where Streamlit applies its own layout via
-   inline styles that out-rank an external stylesheet. ---- */
 .st-key-iconrow_welcome {
     max-width: 480px;
+    width: 100%;
     margin-left: auto !important;
     margin-right: auto !important;
     margin-bottom: 32px !important;
+    padding-left: 20px;
+    padding-right: 20px;
+    box-sizing: border-box;
 }
+
 .st-key-iconrow_welcome .dash-card-link {
-    display: block;
-    margin-bottom: 16px;
+    display: flex !important;
+    justify-content: center !important;
+    margin-bottom: 28px;
 }
 .st-key-iconrow_welcome .dash-card-link:last-child {
     margin-bottom: 0;
 }
 .dash-card-v2 {
     width: 100% !important;
-    max-width: none !important;
+    max-width: 300px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 /* Tap-affordance chevron on the home cards */
 .st-key-iconrow_welcome .dash-card-v2-body {
