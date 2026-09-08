@@ -1193,15 +1193,23 @@ layout_common = dict(
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
     font=dict(color=tc()['label_text'], size=12),
+    # Legend sits BELOW the plot area (not above) so it never collides
+    # with the chart's own title text at the top — that collision is
+    # exactly what was happening on the Reheat and Regenerative Rankine
+    # T-s diagrams, where a longer title plus a legend that wraps to 2-3
+    # rows (6 curve names on a narrow phone width) left no room between
+    # them. Centering it below, the same way layout_common_grid already
+    # did for the fluid-explorer charts, means it just wraps into as many
+    # centered rows as it needs under the plot instead.
     legend=dict(
         orientation='h',
-        yanchor='bottom',
-        y=1.02,
-        xanchor='right',
-        x=1,
+        yanchor='top',
+        y=-0.22,
+        xanchor='center',
+        x=0.5,
         font=dict(size=10, color=tc()['label_text'])
     ),
-    margin=dict(l=60, r=40, t=60, b=60)
+    margin=dict(l=60, r=40, t=50, b=115)
 )
 layout_common_grid = dict(layout_common)
 layout_common_grid.update(
@@ -1513,25 +1521,25 @@ def _render_power_cycle_analysis_body():
                         x=boiler_ann_x, y=boiler_ann_y,
                         text=f"Q = {conv(Q_boiler,'H'):.0f} {disp_unit('H')}",
                         showarrow=True, arrowhead=5, ax=-40, ay=-40,
-                        font=dict(color='#FF3CAC', size=12),
-                        bgcolor='rgba(0,0,0,0.65)'
+                        font=dict(color=tc()['condenser'], size=12),
+                        bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1
                     )
                     fig_rk_ts.add_annotation(x=(s3k+s4k)/2, y=(T3c+T4c)/2-40, text=f"W = {conv(W_turbine,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=-60, ay=0,
-                                              font=dict(color='orange', size=12), bgcolor='rgba(0,0,0,0.65)')
+                                              font=dict(color=tc()['turbine'], size=12), bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1)
                     fig_rk_ts.add_annotation(x=(s4k+s1k)/2, y=(T4c+T1c)/2, text=f"Q = {conv(Q_condenser,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=0, ay=-30,
-                                              font=dict(color='#FF3CAC', size=12), bgcolor='rgba(0,0,0,0.65)')
+                                              font=dict(color=tc()['condenser'], size=12), bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1)
                     fig_rk_ts.add_annotation(x=(s1k+s2k)/2, y=(T1c+T2c)/2, text=f"W = {conv(W_pump,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=-60, ay=5,
-                                              font=dict(color='#39FF14', size=12), bgcolor='rgba(0,0,0,0.65)')
+                                              font=dict(color=tc()['pump'], size=12), bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1)
                     if np.isfinite(x_4):
                         fig_rk_ts.add_annotation(
                             x=s4k, y=T4c,
                             text=f"x = {x_4:.3f} | moisture = {(1-x_4)*100:.1f}%",
                             showarrow=True, arrowhead=2, ax=55, ay=15,
-                            font=dict(color='#FF3CAC', size=11),
-                            bgcolor='rgba(0,0,0,0.65)'
+                            font=dict(color=tc()['condenser'], size=11),
+                            bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1
                         )
                     rk_ts_layout = layout_common.copy()
                     rk_ts_layout.update(
@@ -1597,16 +1605,16 @@ def _render_power_cycle_analysis_body():
                         )
                     fig_rk_ph.add_annotation(x=(h2k+h3k)/2, y=P_boiler_bar, text=f"Q = {conv(Q_boiler,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=0, ay=-35,
-                                              font=dict(color='yellow', size=12), bgcolor='rgba(0,0,0,0.65)')
+                                              font=dict(color=tc()['condenser'], size=12), bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1)
                     fig_rk_ph.add_annotation(x=(h3k+h4k)/2, y=(P_boiler_bar*P_cond_bar)**0.5+16, text=f"W = {conv(W_turbine,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=-60, ay=-20,
-                                              font=dict(color='orange', size=12), bgcolor='rgba(0,0,0,0.65)')
+                                              font=dict(color=tc()['turbine'], size=12), bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1)
                     fig_rk_ph.add_annotation(x=(h4k+h1k)/2, y=P_cond_bar, text=f"Q = {conv(Q_condenser,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=0, ay=-40,
-                                              font=dict(color='#FF3CAC', size=12), bgcolor='rgba(0,0,0,0.65)')
+                                              font=dict(color=tc()['condenser'], size=12), bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1)
                     fig_rk_ph.add_annotation(x=(h1k+h2k)/2, y=(P_boiler_bar*P_cond_bar)**0.5+40, text=f"W = {conv(W_pump,'H'):.0f} {disp_unit('H')}",
                                               showarrow=True, arrowhead=5, ax=-60, ay=-15,
-                                              font=dict(color='#39FF14', size=12), bgcolor='rgba(0,0,0,0.65)')
+                                              font=dict(color=tc()['pump'], size=12), bgcolor='rgba(255,253,248,0.94)', bordercolor='#e3d2ad', borderwidth=1)
                     rk_ph_layout = layout_common.copy()
                     rk_ph_layout.update(
                         title='P-h Diagram',
@@ -2291,19 +2299,22 @@ def _render_power_cycle_analysis_body():
                 x=(s1k+s2k)/2, y=(T1k+T2k)/2,
                 text=f"Wc = {conv(W_compb,'H'):.0f} {h_u_br}",
                 showarrow=True, arrowhead=2, ax=-45, ay=25,
-                bgcolor="rgba(0,0,0,0.65)"
+                font=dict(color=tc()['pump'], size=12),
+                bgcolor="rgba(255,253,248,0.94)", bordercolor="#e3d2ad", borderwidth=1
             )
             fig_br.add_annotation(
                 x=(s2k+s3k)/2, y=(T2k+T3k)/2,
                 text=f"Qin = {conv(Q_inb,'H'):.0f} {h_u_br}",
                 showarrow=True, arrowhead=2, ax=45, ay=-30,
-                bgcolor="rgba(0,0,0,0.65)"
+                font=dict(color=tc()['condenser'], size=12),
+                bgcolor="rgba(255,253,248,0.94)", bordercolor="#e3d2ad", borderwidth=1
             )
             fig_br.add_annotation(
                 x=(s3k+s4k)/2, y=(T3k+T4k)/2,
                 text=f"Wt = {conv(W_turbb,'H'):.0f} {h_u_br}",
                 showarrow=True, arrowhead=2, ax=55, ay=20,
-                bgcolor="rgba(0,0,0,0.65)"
+                font=dict(color=tc()['turbine'], size=12),
+                bgcolor="rgba(255,253,248,0.94)", bordercolor="#e3d2ad", borderwidth=1
             )
 
             br_layout = layout_common.copy()
