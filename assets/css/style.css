@@ -756,6 +756,28 @@ iframe[height="0"][width="0"] {
     justify-content: center !important;
     line-height: 1 !important;
 }
+/* Belt-and-suspenders alignment fix: instead of trusting align-items on
+   the row to line up three DIFFERENT kinds of content (two native
+   <button> elements and one custom markdown div) purely by their own
+   natural/shrink-wrapped heights, give all three columns — and the
+   button and the app-header inside them — the exact same fixed height.
+   Centering content inside three identically-sized boxes is
+   unambiguous, so there's no remaining room for the browser to size any
+   one of them slightly differently and throw the row off. */
+.st-key-topnav [data-testid="stHorizontalBlock"] {
+    align-items: stretch !important;
+}
+.st-key-topnav [data-testid="column"],
+.st-key-topnav [data-testid="stColumn"] {
+    height: 42px !important;
+}
+.st-key-topnav button {
+    height: 42px !important;
+}
+.st-key-topnav .app-header,
+.st-key-topnav .app-header .brand {
+    height: 42px !important;
+}
 @supports (padding-top: env(safe-area-inset-top)) {
     .st-key-topnav {
         padding-top: max(8px, env(safe-area-inset-top)) !important;
@@ -818,18 +840,8 @@ div.stMarkdown:has(> .ck-home-subtext) {
     box-sizing: border-box;
 }
 
-.st-key-iconrow_welcome .dash-card-link {
-
-    display: flex !important;
-    justify-content: center !important;
-}
-
 .st-key-iconrow_welcome [data-testid="stVerticalBlock"] {
     gap: 28px !important;
-}
-
-.st-key-iconrow_welcome .dash-card-link + .dash-card-link {
-    margin-top: 28px !important;
 }
 
 .dash-card-v2 {
@@ -839,15 +851,28 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-right: auto !important;
 }
 
+/* Restores the 28px breathing room between the Fluids and Cycle cards.
+   This used to be driven by ".dash-card-link + .dash-card-link" — but
+   the cards are no longer wrapped in an <a class="dash-card-link">
+   (only the Explore button is a link now), so that selector stopped
+   matching anything and the gap silently disappeared. Targeting
+   .dash-card-v2 directly (the cards' actual current top-level element)
+   fixes it. */
+.st-key-iconrow_welcome .dash-card-v2 + .dash-card-v2 {
+    margin-top: 28px !important;
+}
+
 .st-key-iconrow_welcome .dash-card-v2-body {
     position: relative;
 }
 
 /* ---- "Explore" CTA button — replaces the old whole-card tap affordance.
    Only this button navigates now; the card itself is no longer a link.
-   Width is 2/3 of the card, centered, with the app's accent color
-   (#b45309, the same amber used for button hovers/focus elsewhere in
-   theme_light.css) so it reads as a clear call-to-action. ---- */
+   Width is 2/3 of the card, centered. Uses the app's one established
+   accent hue (#b45309, the amber already used for button hovers/focus
+   throughout theme_light.css) but as a richer gradient + soft matching
+   shadow rather than a single flat fill, so it reads as a deliberate,
+   polished primary button instead of a plain color swatch. ---- */
 .dash-card-v2-cta {
     display: flex;
     justify-content: center;
@@ -859,21 +884,25 @@ div.stMarkdown:has(> .ck-home-subtext) {
     align-items: center;
     justify-content: center;
     width: 66.66%;
-    min-height: 44px;
-    border-radius: 12px;
-    background: #b45309;
+    min-height: 46px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #d9770f 0%, #a34c09 100%);
     color: #fffdf8 !important;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14.5px;
+    letter-spacing: 0.2px;
     text-decoration: none !important;
     box-sizing: border-box;
-    transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
+    box-shadow: 0 6px 16px rgba(163, 76, 9, 0.32);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
 }
 .dash-card-btn:hover,
 .dash-card-btn:focus-visible {
-    background: #96450a;
-    box-shadow: 0 4px 14px rgba(180, 83, 9, 0.28);
+    filter: brightness(1.06);
+    box-shadow: 0 8px 20px rgba(163, 76, 9, 0.42);
+    transform: translateY(-1px);
 }
 .dash-card-btn:active {
-    transform: scale(0.97);
+    transform: scale(0.97) translateY(0);
+    box-shadow: 0 3px 10px rgba(163, 76, 9, 0.3);
 }
