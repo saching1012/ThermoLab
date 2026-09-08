@@ -3282,8 +3282,8 @@ with g1:
     v_state, p_state = generate_Pv_isotherm(fluid, state['T']-273.15, limits["P_min"], limits["P_max"])
     T_state_disp = conv(state['T']-273.15, 'T')
     fig1.add_trace(go.Scatter(
-        x=conv(np.array(v_state), 'V'), y=conv(np.array(p_state), 'P'), mode='lines', line=dict(color=tc()['state'], width=3), name='State Isotherm (T)',
-        hovertemplate=f"<b>State Isotherm ({T_state_disp:.1f}{t_u})</b><br>v: %{{x:.4f}} {v_u}<br>P: %{{y:.2f}} {p_u}<extra></extra>"
+        x=conv(np.array(v_state), 'V'), y=conv(np.array(p_state), 'P'), mode='lines', line=dict(color=tc()['state'], width=3), name='Isotherm (T)',
+        hovertemplate=f"<b>Isotherm ({T_state_disp:.1f}{t_u})</b><br>v: %{{x:.4f}} {v_u}<br>P: %{{y:.2f}} {p_u}<extra></extra>"
     ))    
     if dome is not None:
         fig1.add_trace(go.Scatter(
@@ -3326,8 +3326,8 @@ with g2:
         fig2.add_trace(go.Scatter(
             x=conv(np.array(ent_state), 'S'), y=conv(np.array(temps_state), 'T'), mode='lines',
             line=dict(color=tc()['state'], width=3),
-            name=f"State Isobar ({P_state_disp:.2f} {p_u2})",
-            hovertemplate=f"<b>State Isobar ({P_state_disp:.2f} {p_u2})</b><br>s: %{{x:.3f}} {s_u}<br>T: %{{y:.1f}} {t_u2}<extra></extra>"
+            name=f"Isobar ({P_state_disp:.2f} {p_u2})",
+            hovertemplate=f"<b>Isobar ({P_state_disp:.2f} {p_u2})</b><br>s: %{{x:.3f}} {s_u}<br>T: %{{y:.1f}} {t_u2}<extra></extra>"
         ))
     if dome is not None:
         fig2.add_trace(go.Scatter(
@@ -3370,8 +3370,8 @@ with g3:
         fig3.add_trace(go.Scatter(
             x=conv(np.array(v_state), 'V'), y=conv(np.array(temps_state), 'T'), mode='lines',
             line=dict(color=tc()['state'], width=3),
-            name=f"State Isobar ({P_state_disp3:.2f} {p_u3})",
-            hovertemplate=f"<b>State Isobar ({P_state_disp3:.2f} {p_u3})</b><br>v: %{{x:.4f}} {v_u3}<br>T: %{{y:.1f}} {t_u3}<extra></extra>"
+            name=f"Isobar ({P_state_disp3:.2f} {p_u3})",
+            hovertemplate=f"<b>Isobar ({P_state_disp3:.2f} {p_u3})</b><br>v: %{{x:.4f}} {v_u3}<br>T: %{{y:.1f}} {t_u3}<extra></extra>"
         ))
     if dome is not None:
         fig3.add_trace(go.Scatter(
@@ -3413,8 +3413,8 @@ with g4:
         fig4.add_trace(go.Scatter(
             x=conv(np.array(ent_state), 'H'), y=conv(np.array(pres_state), 'P'), mode='lines',
             line=dict(color=tc()['state'], width=3),
-            name=f"State Isotherm ({T_state_disp4:.1f} {t_u4})",
-            hovertemplate=f"<b>State Isotherm ({T_state_disp4:.1f} {t_u4})</b><br>h: %{{x:.1f}} {h_u4}<br>P: %{{y:.2f}} {p_u4}<extra></extra>"
+            name=f"Isotherm ({T_state_disp4:.1f} {t_u4})",
+            hovertemplate=f"<b>Isotherm ({T_state_disp4:.1f} {t_u4})</b><br>h: %{{x:.1f}} {h_u4}<br>P: %{{y:.2f}} {p_u4}<extra></extra>"
         ))    
     if dome is not None:
         fig4.add_trace(go.Scatter(
@@ -3458,8 +3458,8 @@ with g5:
         fig5.add_trace(go.Scatter(
             x=conv(np.array(Hs_state), 'H'), y=conv(np.array(Ts_state), 'T'), mode='lines',
             line=dict(color=tc()['state'], width=3),
-            name=f"State Isobar ({P_state_disp5:.2f} {p_u5})",
-            hovertemplate=f"<b>State Isobar ({P_state_disp5:.2f} {p_u5})</b><br>h: %{{x:.1f}} {h_u5}<br>T: %{{y:.1f}} {t_u5}<extra></extra>"
+            name=f"Isobar ({P_state_disp5:.2f} {p_u5})",
+            hovertemplate=f"<b>Isobar ({P_state_disp5:.2f} {p_u5})</b><br>h: %{{x:.1f}} {h_u5}<br>T: %{{y:.1f}} {t_u5}<extra></extra>"
         ))   
     if dome is not None:
         fig5.add_trace(go.Scatter(
@@ -3521,8 +3521,8 @@ with g6:
         fig6.add_trace(go.Scatter(
             x=conv(np.array(Ss_state), 'S'), y=conv(np.array(Hs_state), 'H'), mode='lines',
             line=dict(color=tc()['state'], width=3),
-            name=f"State Isobar ({P_state_disp6:.2f} {p_u6})",
-            hovertemplate=f"<b>State Isobar ({P_state_disp6:.2f} {p_u6})</b><br>s: %{{x:.3f}} {s_u6}<br>h: %{{y:.1f}} {h_u6}<extra></extra>"
+            name=f"Isobar ({P_state_disp6:.2f} {p_u6})",
+            hovertemplate=f"<b>Isobar ({P_state_disp6:.2f} {p_u6})</b><br>s: %{{x:.3f}} {s_u6}<br>h: %{{y:.1f}} {h_u6}<extra></extra>"
         ))
     if dome is not None:
         fig6.add_trace(go.Scatter(
