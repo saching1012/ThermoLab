@@ -244,6 +244,15 @@ div[class*="st-key-igrid_"] {
         width: 38% !important;
     }
 
+    /* NOTE: scoped to iconrow_cycle (the small square Rankine/Brayton tiles)
+       only — it used to be a blanket div[class*="st-key-iconrow_"] prefix
+       match, which also caught iconrow_welcome (the big Fluids/Cycle photo
+       cards) and silently forced them into a 2-up row on phones no matter
+       what later CSS said, because an attribute-prefix selector like
+       div[class*="..."] is MORE specific than a plain .st-key-iconrow_welcome
+       class selector, so it kept winning the cascade even against later
+       !important rules. iconrow_welcome now has its own always-single-column
+       rules further down this file. */
     .st-key-iconrow_cycle [data-testid="stHorizontalBlock"] {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
@@ -525,6 +534,17 @@ a.dash-card-link {
     }
 }
 
+/* overflow-x: hidden here (rather than "clip") used to create a scroll
+   container on .stApp, which is an ancestor of .st-key-topnav. Per spec,
+   ANY overflow value other than "visible" on an ancestor turns that
+   ancestor into position:sticky's containing block, instead of the real
+   viewport — so the sticky navbar sticks relative to that inner box, not
+   the page. Some engines (desktop Chrome) are forgiving about this;
+   stricter WebViews (Android app/PWA wrapper) are not, which is exactly
+   why the navbar only clips/cuts in the app version. "clip" avoids
+   creating that scroll container while still preventing horizontal
+   scroll, so it's used everywhere else in this file already (see below) —
+   applying it here too closes the last gap. */
 .stApp {
     overflow-x: clip;
 }
@@ -732,6 +752,26 @@ section[data-testid="stSidebar"] * {
     display: flex !important;
     align-items: center !important;
 }
+/* The DevTools screenshots showed the actual bug: .app-header measured
+   only 26px tall inside the 56–64px sticky bar, sitting flush at the
+   top instead of centered. align-items:center on a flex parent only
+   ever centers its DIRECT child — but Streamlit nests several more
+   plain block wrapper divs (stVerticalBlock > element-container >
+   stMarkdown) between the column above and .app-header itself, and
+   none of those carry any height or centering of their own, so the
+   centering never reaches the actual brand content. This forces every
+   level of that chain to stretch to full height and center its child,
+   so it actually cascades all the way down. */
+.st-key-topnav [data-testid="column"] [data-testid="stVerticalBlock"],
+.st-key-topnav [data-testid="stColumn"] [data-testid="stVerticalBlock"],
+.st-key-topnav [data-testid="stVerticalBlockBorderWrapper"],
+.st-key-topnav [data-testid="element-container"],
+.st-key-topnav [data-testid="stMarkdown"],
+.st-key-topnav [data-testid="stMarkdownContainer"] {
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+}
 .st-key-topnav .app-header {
     display: flex !important;
     align-items: center !important;
@@ -801,6 +841,15 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-bottom: 24px !important;
 }
 
+/* ---- Home cards: ONE column only, centered like a native mobile app,
+   at every screen width (phone, tablet, or desktop browser window).
+   NOTE: these cards no longer sit inside st.columns() at all (see
+   render_welcome() in app.py) — each one is its own standalone element,
+   so there's no Streamlit column/grid layout left to override here.
+   That's a more reliable fix than fighting Streamlit's own column
+   sizing with flex/grid CSS overrides, which could still lose on real
+   narrow-viewport devices where Streamlit applies its own layout via
+   inline styles that out-rank an external stylesheet. ---- */
 .st-key-iconrow_welcome {
     max-width: 480px;
     width: 100%;
@@ -811,14 +860,30 @@ div.stMarkdown:has(> .ck-home-subtext) {
     padding-right: 20px;
     box-sizing: border-box;
 }
-
+/* display:flex + justify-content:center so the fixed-width card below
+   centers itself with visible margin on both sides, instead of a block
+   link stretching edge-to-edge and the card filling all of it.
+   NOTE: spacing between the two cards is handled via `gap` on the
+   actual Streamlit flex container below, NOT margin-bottom here. Each
+   card comes from its own separate st.markdown() call, so each
+   .dash-card-link is the ONLY child of its own wrapper div — meaning
+   :last-child matches BOTH of them (each is "last" within its own
+   parent), not just the second card. A margin-bottom + :last-child
+   override here would zero out on both, which is exactly why there was
+   no visible gap. */
 .st-key-iconrow_welcome .dash-card-link {
     display: flex !important;
     justify-content: center !important;
 }
+/* This is Streamlit's own flex column that directly holds the two card
+   wrappers as siblings — overriding its gap is the reliable way to
+   space them, since it isn't affected by the :last-child issue above. */
 .st-key-iconrow_welcome [data-testid="stVerticalBlock"] {
     gap: 28px !important;
 }
+/* Fixed pixel width — deliberately NOT a percentage of the viewport —
+   so the card stays the same physical size on every screen instead of
+   stretching to fill it. Tweak the 300px if you want it wider/narrower. */
 .dash-card-v2 {
     width: 100% !important;
     max-width: 300px !important;
