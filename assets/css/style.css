@@ -892,6 +892,17 @@ div.stMarkdown:has(> .ck-home-subtext) {
 .st-key-iconrow_welcome .dash-card-v2-body {
     position: relative;
 }
+/* The Fluids card's text ("Explore thermodynamics properties") wraps to
+   2 lines while Cycle's ("Analyse power cycle") fits on 1 — with a
+   fixed-height card, that extra line ate into the room meant for the
+   Explore button's own bottom padding, and .dash-card-v2 clips anything
+   that doesn't fit (overflow:hidden, so the card's corners stay
+   rounded around the image). Tightening the text row's own padding
+   here — not the card height or the button — frees up enough room that
+   both cards keep a consistent gap below the button either way. */
+.st-key-iconrow_welcome .dash-card-v2-body {
+    padding: 4px 10px 4px 10px !important;
+}
 
 /* ---- "Explore" CTA button — replaces the old whole-card tap affordance.
    Only this button navigates now; the card itself is no longer a link.
