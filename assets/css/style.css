@@ -914,32 +914,33 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-right: auto !important;
 }
 
-/* Image = 60% of the card height, text+button = the remaining 40%.
-   This needs a fixed total card height for a percentage split to mean
-   anything — .dash-card-v2-img and .dash-card-v2-bottom are the two
-   flex children, pinned to flex: 0 0 60%/40%, so they split that fixed
-   height in that ratio regardless of how much text wraps. Total height
-   went up from 320px to 400px alongside the ratio change, so the 40%
-   bottom portion (160px) stays exactly as roomy as the old 50% (160px
-   of 320px) was — the text and button aren't being squeezed to make
-   room for a bigger image, the whole card just grew to fit both
-   properly. Within the bottom portion, justify-content:space-between
-   keeps the text anchored near the image and the button anchored near
-   the card's bottom edge, instead of both crowding together at the
-   top. */
+/* Image = 50% of the card height, text+button = the other 50%. This is
+   reverted back from a 60/40 attempt — going taller-and-narrower on the
+   image box made background-size:cover crop MORE of the source image
+   away, not less (a wide banner image forced into a more square box
+   has to zoom in further to fill it, cropping the sides), which is the
+   opposite of what was wanted. Fixing that properly needs the actual
+   source images' real aspect ratio so the box can match it exactly —
+   without that, 50/50 is the version already confirmed to look right.
+   .dash-card-v2-img and .dash-card-v2-bottom are the two flex children,
+   pinned to flex: 0 0 50%, splitting the fixed card height evenly
+   regardless of how much text wraps. Within the bottom half,
+   justify-content:space-between keeps the text anchored near the image
+   and the button anchored near the card's bottom edge, instead of both
+   crowding together at the top. */
 .st-key-iconrow_welcome .dash-card-v2 {
-    height: 400px !important;
+    height: 320px !important;
     display: flex !important;
     flex-direction: column !important;
 }
 .st-key-iconrow_welcome .dash-card-v2-img {
-    flex: 0 0 60% !important;
-    height: 60% !important;
+    flex: 0 0 50% !important;
+    height: 50% !important;
     min-height: 0 !important;
 }
 .st-key-iconrow_welcome .dash-card-v2-bottom {
-    flex: 0 0 40% !important;
-    height: 40% !important;
+    flex: 0 0 50% !important;
+    height: 50% !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
