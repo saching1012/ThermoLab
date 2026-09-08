@@ -983,8 +983,39 @@ def render_nav_sidebar():
                        "temperatures stay within each fluid's valid range.")
             if st.button("📧 Contact support", key="sb_contact_support", use_container_width=True):
                 st.toast("This is option under progess", icon="📧")
+            st.markdown(
+                '<div class="small-box">'
+                '<b>Developed by</b><br>'
+                'Sachin Maurya<br>'
+                '📱 7084763889<br>'
+                '✉️ sachinmaurya34454@gmail.com'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                '<div class="small-box">'
+                '<b>Guided by</b><br>'
+                'Prof. Sachin Ilag<br>'
+                '📱 8149575599<br>'
+                '✉️ sgilag@gmail.com'
+                '</div>',
+                unsafe_allow_html=True,
+            )
         with st.expander("ℹ️ About this app"):
             st.caption("**Curious Kelvin — Fluid & Cycle Simulation Lab**  \nVersion 1.0.0")
+            st.caption(
+                "Curious Kelvin is a thermodynamics learning and analysis tool. "
+                "In **Fluids**, look up state properties for Water, CO₂, Ammonia, "
+                "R134a, and Air at any pressure/temperature/quality, and see "
+                "them plotted live on P-v, T-s, T-v, P-h, T-h, and h-s diagrams."
+            )
+            st.caption(
+                "In **Cycle**, build an ideal or practical Rankine cycle — with "
+                "optional reheat and up to 3 feedwater heaters for regeneration "
+                "— or a Brayton gas-turbine cycle, and see the resulting T-s "
+                "diagram, state table, and performance numbers (work, heat, "
+                "and efficiency) update as you adjust each input."
+            )
             st.caption("Built with Streamlit, Plotly &amp; CoolProp.")
         if st.button("⭐ Rate this app", key="sb_rate_app", use_container_width=True):
             st.toast("Thanks for the feedback! ⭐⭐⭐⭐⭐", icon="⭐")
