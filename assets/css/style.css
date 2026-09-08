@@ -944,3 +944,105 @@ div.stMarkdown:has(> .ck-home-subtext) {
     transform: scale(0.97) translateY(0);
     box-shadow: 0 3px 10px rgba(163, 76, 9, 0.3);
 }
+
+/* =======================================================================
+   FLUID SELECTION LIST — "Select a working fluid" page, redesigned from
+   a grid of square buttons into a searchable vertical list (icon in a
+   colored circle + name per row), matching a reference mockup. Selecting
+   a fluid still works exactly as before — one tap selects it and moves
+   straight to the next step — it just happens via a link that carries
+   ?fluid=<name> (handled next to the existing ?mode=/?cycle= handlers
+   in app.py) instead of a Streamlit button, since only custom HTML/CSS
+   can render the colored icon circles the mockup uses. ---- */
+.ck-list-heading {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    margin: 20px 0 4px 0 !important;
+}
+.ck-list-subtext {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    opacity: 0.62;
+    margin: 0 0 20px 0 !important;
+}
+
+.st-key-fluid_search_wrap,
+.st-key-fluid_list_wrap {
+    max-width: 480px;
+    width: 100%;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box;
+}
+.st-key-fluid_search_wrap {
+    margin-bottom: 16px !important;
+}
+.st-key-fluid_search_wrap input {
+    border-radius: 12px !important;
+    border: 1px solid #e3d2ad !important;
+    background: #fffdf8 !important;
+    min-height: 46px !important;
+    padding-left: 14px !important;
+    font-size: 15px !important;
+}
+.st-key-fluid_search_wrap input:focus {
+    border-color: #b45309 !important;
+    box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.12) !important;
+}
+
+.fluid-list {
+    background: #fffdf8;
+    border: 1px solid #e3d2ad;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+.fluid-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    text-decoration: none !important;
+    color: inherit !important;
+    border-bottom: 1px solid #f1e6cf;
+    transition: background 0.15s ease;
+}
+.fluid-list a.fluid-row:last-child {
+    border-bottom: none;
+}
+.fluid-row:hover,
+.fluid-row:focus-visible {
+    background: rgba(180, 83, 9, 0.06);
+}
+.fluid-row:active {
+    background: rgba(180, 83, 9, 0.1);
+}
+.fluid-row.sel {
+    background: rgba(180, 83, 9, 0.09);
+}
+.fluid-row-icon {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    line-height: 1;
+}
+.fluid-row-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #17120a;
+}
+.fluid-row.sel .fluid-row-name {
+    color: #b45309;
+}
+.ck-list-empty {
+    text-align: center;
+    padding: 24px 16px;
+    opacity: 0.6;
+    font-size: 14.5px;
+}
