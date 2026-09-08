@@ -96,7 +96,7 @@ components.html(
         // deploy path that has proven unreliable to verify from here —
         // this block ships inside app.py itself and cannot go missing. ----
         function fixViewport() {
-            var desired = 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes';
+            var desired = 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover';
             var vp = doc.querySelector('meta[name="viewport"]');
             if (!vp) {
                 vp = doc.createElement('meta');
