@@ -925,7 +925,14 @@ def render_header(active_label):
                 st.session_state.wizard_step = wsteps[idx - 1]
                 st.rerun()
         with c_brand:
-            _active_html = f'<span class="active">{active_label}</span>' if active_label else ''
+            # active_label is intentionally ignored now — the nav bar
+            # should look identical (logo + app name only) on every
+            # screen, matching the home page, instead of picking up a
+            # per-page label like "Choose Working Fluid" underneath the
+            # name. Left as a no-op here (rather than removing the
+            # parameter and updating every render_header(...) call site)
+            # so nothing else has to change.
+            _active_html = ''
             st.markdown(
                 '<div class="app-header"><div class="brand">'
                 f'{_logo_img_html("brand-logo top-logo")}'
