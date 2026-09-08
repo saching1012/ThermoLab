@@ -797,53 +797,45 @@ def render_welcome():
     _card_title_c = "#f2f6fa" if _is_dark() else "#17120a"
     _card_sub_c = "#b3a690" if _is_dark() else "#5c4f3d"
 
-    # NOTE: these two cards used to sit in a 2-column st.columns() row, with
-    # CSS trying to force that row to collapse into one column on phones.
-    # On real narrow-viewport devices Streamlit's own column layout kept
-    # winning that fight (it can apply its sizing via inline styles that
-    # out-rank a plain external stylesheet). Removing st.columns()
-    # entirely sidesteps that: each card below is now its own standalone
-    # st.markdown() call, one after another, with no column/grid construct
-    # for Streamlit to lay out — so they simply stack top-to-bottom like
-    # any two consecutive blocks of content, the same way on every browser
-    # and every screen size, with nothing left to override.
+    # NOTE: both cards are emitted from a SINGLE st.markdown() call (rather
+    # than one call per card). Separate calls would mean each card is the
+    # only child of its own Streamlit wrapper div — real DOM siblings only
+    # as far as Streamlit's own internal container structure, which changes
+    # between versions and makes CSS spacing between them unreliable to
+    # target. Emitting one HTML string makes them true, guaranteed adjacent
+    # siblings in the actual DOM, so plain CSS sibling selectors work
+    # regardless of whatever Streamlit wraps around the outside.
     #
-    # NOTE: both cards are now emitted from a SINGLE st.markdown() call
-    # (previously two separate calls). Two separate calls meant each
-    # <a class="dash-card-link"> was the only child of its own Streamlit
-    # wrapper div — real DOM siblings only as far as Streamlit's own
-    # internal container structure, which changes between versions and
-    # made CSS spacing between them unreliable to target. Emitting one
-    # HTML string makes them true, guaranteed adjacent siblings in the
-    # actual DOM, so plain CSS sibling selectors work regardless of
-    # whatever Streamlit wraps around the outside.
+    # NOTE: the card itself is a plain, non-clickable <div> now — only the
+    # "Explore" button inside it is a link. Previously the whole card was
+    # wrapped in an <a>, so tapping anywhere on it navigated away.
     with st.container(key="iconrow_welcome"):
         st.markdown(
             f"""
-            <a class="dash-card-link" href="?mode=explorer&{_theme_qs()}" target="_self">
-              <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
-                  <div class="dash-card-v2-img" style="background-image:url('{_fluid_photo}')"></div>
-                  <div class="dash-card-v2-body">
-                      <div class="icon">🌡️</div>
-                      <div class="txt">
-                          <h3 style="color:{_card_title_c};margin:0;">Fluids</h3>
-                          <p style="color:{_card_sub_c};margin:2px 0 0 0;">Explore thermodynamic properties</p>
-                      </div>
-                  </div>
-              </div>
-            </a>
-            <a class="dash-card-link" href="?mode=cycles&{_theme_qs()}" target="_self">
-              <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
-                  <div class="dash-card-v2-img" style="background-image:url('{_cycle_photo}')"></div>
-                  <div class="dash-card-v2-body">
-                      <div class="icon">⚡</div>
-                      <div class="txt">
-                          <h3 style="color:{_card_title_c};margin:0;">Cycle</h3>
-                          <p style="color:{_card_sub_c};margin:2px 0 0 0;">Analyze power cycles</p>
-                      </div>
-                  </div>
-              </div>
-            </a>
+            <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
+                <div class="dash-card-v2-img" style="background-image:url('{_fluid_photo}')"></div>
+                <div class="dash-card-v2-body">
+                    <div class="icon">🌡️</div>
+                    <div class="txt">
+                        <h3 style="color:{_card_title_c};margin:0;">Explore thermodynamics properties</h3>
+                    </div>
+                </div>
+                <div class="dash-card-v2-cta">
+                    <a class="dash-card-btn" href="?mode=explorer&{_theme_qs()}" target="_self">Explore</a>
+                </div>
+            </div>
+            <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
+                <div class="dash-card-v2-img" style="background-image:url('{_cycle_photo}')"></div>
+                <div class="dash-card-v2-body">
+                    <div class="icon">⚡</div>
+                    <div class="txt">
+                        <h3 style="color:{_card_title_c};margin:0;">Analyse power cycle</h3>
+                    </div>
+                </div>
+                <div class="dash-card-v2-cta">
+                    <a class="dash-card-btn" href="?mode=cycles&{_theme_qs()}" target="_self">Explore</a>
+                </div>
+            </div>
             """,
             unsafe_allow_html=True,
         )
