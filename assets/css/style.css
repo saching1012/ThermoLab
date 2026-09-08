@@ -684,9 +684,6 @@ section[data-testid="stSidebar"] * {
         z-index: 999990 !important;
     }
 }
-
-/* ---- Fallback fullscreen state for charts on browsers without the
-   Fullscreen API (or where it's blocked inside an iframe) ---- */
 .ck-chart-fullscreen {
     position: fixed !important;
     inset: 0 !important;
@@ -733,37 +730,21 @@ iframe[height="0"][width="0"] {
     padding: 0 !important;
     margin-bottom: 0 !important;
 }
-/* Streamlit wraps every widget (each button, each markdown block) in its
-   own element-container div, and gives those a small default top/bottom
-   margin for normal vertical spacing between stacked widgets. Inside the
-   topnav's single row, that default margin can differ slightly between
-   the button columns and the markdown (logo+name) column, which is what
-   was nudging the logo/name a little off the buttons' vertical center.
-   Zeroing it out here means the row's height and centering come purely
-   from the rules above, consistently for every column. */
+
 .st-key-topnav [data-testid="element-container"],
 .st-key-topnav [data-testid="stVerticalBlock"],
 .st-key-topnav div.stButton {
     margin: 0 !important;
     padding: 0 !important;
 }
-/* Center the ◀ / ☰ glyph inside its own button box via flexbox instead
-   of relying on the font's line-height, which can render a hair
-   off-center depending on the font/browser. */
+
 .st-key-topnav button {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     line-height: 1 !important;
 }
-/* Belt-and-suspenders alignment fix: instead of trusting align-items on
-   the row to line up three DIFFERENT kinds of content (two native
-   <button> elements and one custom markdown div) purely by their own
-   natural/shrink-wrapped heights, give all three columns — and the
-   button and the app-header inside them — the exact same fixed height.
-   Centering content inside three identically-sized boxes is
-   unambiguous, so there's no remaining room for the browser to size any
-   one of them slightly differently and throw the row off. */
+
 .st-key-topnav [data-testid="stHorizontalBlock"] {
     align-items: stretch !important;
 }
@@ -784,12 +765,7 @@ iframe[height="0"][width="0"] {
 .st-key-topnav .app-header .brand {
     height: 54px !important;
 }
-/* Pin the prev button flush to the row's true left edge and the
-   hamburger flush to its true right edge, regardless of button size —
-   without this, the browser centers each button within its own column,
-   which (now that the columns are wider, to give the buttons room to
-   render at full size) leaves visible empty space outside them instead
-   of them sitting right at the edges. */
+
 .st-key-topnav [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child,
 .st-key-topnav [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
     justify-content: flex-start !important;
@@ -820,7 +796,7 @@ iframe[height="0"][width="0"] {
 }
 
 .ck-home-heading {
-    font-size: 30px !important;
+    font-size: 24px !important;
     font-weight: 700 !important;
     line-height: 1.18 !important;
     margin: 0 !important;
@@ -871,14 +847,6 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-right: auto !important;
 }
 
-/* Image = exactly half the card height, everything else (icon, text,
-   button) = the other half. This needs a fixed total card height for
-   "half" to mean anything — .dash-card-v2-img and .dash-card-v2-bottom
-   are the two flex children, each pinned to flex: 0 0 50%, so they
-   split that fixed height evenly regardless of how much text wraps.
-   Within the bottom half, justify-content:space-between keeps the text
-   anchored near the image and the button anchored near the card's
-   bottom edge, instead of both crowding together at the top. */
 .st-key-iconrow_welcome .dash-card-v2 {
     height: 260px !important;
     display: flex !important;
@@ -898,13 +866,6 @@ div.stMarkdown:has(> .ck-home-subtext) {
     justify-content: space-between !important;
 }
 
-/* Restores the 28px breathing room between the Fluids and Cycle cards.
-   This used to be driven by ".dash-card-link + .dash-card-link" — but
-   the cards are no longer wrapped in an <a class="dash-card-link">
-   (only the Explore button is a link now), so that selector stopped
-   matching anything and the gap silently disappeared. Targeting
-   .dash-card-v2 directly (the cards' actual current top-level element)
-   fixes it. */
 .st-key-iconrow_welcome .dash-card-v2 + .dash-card-v2 {
     margin-top: 28px !important;
 }
@@ -912,25 +873,11 @@ div.stMarkdown:has(> .ck-home-subtext) {
 .st-key-iconrow_welcome .dash-card-v2-body {
     position: relative;
 }
-/* The Fluids card's text ("Explore thermodynamics properties") wraps to
-   2 lines while Cycle's ("Analyse power cycle") fits on 1 — with a
-   fixed-height card, that extra line ate into the room meant for the
-   Explore button's own bottom padding, and .dash-card-v2 clips anything
-   that doesn't fit (overflow:hidden, so the card's corners stay
-   rounded around the image). Tightening the text row's own padding
-   here — not the card height or the button — frees up enough room that
-   both cards keep a consistent gap below the button either way. */
+
 .st-key-iconrow_welcome .dash-card-v2-body {
     padding: 4px 10px 4px 10px !important;
 }
 
-/* ---- "Explore" CTA button — replaces the old whole-card tap affordance.
-   Only this button navigates now; the card itself is no longer a link.
-   Width is 2/3 of the card, centered. Uses the app's one established
-   accent hue (#b45309, the amber already used for button hovers/focus
-   throughout theme_light.css) but as a richer gradient + soft matching
-   shadow rather than a single flat fill, so it reads as a deliberate,
-   polished primary button instead of a plain color swatch. ---- */
 .dash-card-v2-cta {
     display: flex;
     justify-content: center;
@@ -1067,23 +1014,7 @@ div.stMarkdown:has(> .ck-home-subtext) {
     font-size: 14.5px;
 }
 
-/* =======================================================================
-   GLOBAL BLOCK SPACING — consistent top/bottom/left/right margin and
-   padding for content blocks across the whole app (not just the home
-   screen and fluid list, which already have their own deliberate,
-   tighter spacing rules — those keep winning since they use !important
-   and load after this). Two parts:
-     1. .block-container gets consistent left/right/bottom padding at
-        every screen width, not just under 640px, so the app never sits
-        flush against the screen edge on any device.
-     2. A gentle floor under every generic content block (headings,
-        custom info boxes, inputs, tables, charts, alerts) so nothing
-        can end up touching its neighbor the way the critical-point box
-        was touching the "Select Properties" dropdown above it. This is
-        deliberately NOT !important — anywhere spacing is already
-        explicitly set (cards, fluid rows, the top nav), that more
-        specific rule keeps winning; this only fills in the gaps.
-   ---- */
+
 .block-container {
     padding-left: 18px !important;
     padding-right: 18px !important;
@@ -1094,10 +1025,6 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-bottom: 18px;
 }
 
-/* The critical-point box (Tc/Pc + active fluid) that sits right above
-   the "Select Properties To Compute" dropdown — this was the specific
-   spot reported as touching the text above/below it. Its own padding
-   was fine, it just had no external margin of its own to rely on. */
 .small-box {
     margin: 18px 0 !important;
     padding: 14px 16px !important;
