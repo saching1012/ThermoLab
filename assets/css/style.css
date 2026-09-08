@@ -1,3 +1,24 @@
+/* =====================================================================
+   CURIOUS KELVIN — style.css
+   Single consolidated stylesheet for the Streamlit app's structural
+   layout, Streamlit-chrome cleanup, and responsive rules (mobile-first).
+   Loaded after the active theme file (theme_dark.css / theme_light.css),
+   so it wins the cascade for layout while the theme file still owns
+   colors.
+
+   Sections below (in cascade / load order):
+     1. Base reset      — hides Streamlit's own chrome (menu, header, footer)
+     2. Responsive       — breakpoints for the wizard flow, grids, sidebar
+     3. Extra            — typography, scrollbars, the dash-card-v2 cards
+     4. App shell         — sticky top bar, sidebar sizing/z-index, chart
+                            fullscreen fallback (previously an inline
+                            Python string inside app.py — moved here)
+     5. Home screen       — "What do you want to work on?" page: app bar
+                            sizing, heading/subtext, single-column
+                            Fluids/Cycle cards centered like a mobile app
+   ===================================================================== */
+
+/* ---- 1. Base reset (base_reset.css) ---- */
 #MainMenu {
     visibility: hidden;
     display: none;
@@ -743,6 +764,7 @@ section[data-testid="stSidebar"] * {
 }
 .st-key-topnav [data-testid="stHorizontalBlock"] {
     align-items: center !important;
+    height: 56px !important;
     min-height: 56px !important;
     max-height: 64px !important;
     width: 100%;
@@ -751,28 +773,24 @@ section[data-testid="stSidebar"] * {
 .st-key-topnav [data-testid="stColumn"] {
     display: flex !important;
     align-items: center !important;
+    height: 100% !important;
+    position: relative !important;
 }
 /* The DevTools screenshots showed the actual bug: .app-header measured
    only 26px tall inside the 56–64px sticky bar, sitting flush at the
-   top instead of centered. align-items:center on a flex parent only
-   ever centers its DIRECT child — but Streamlit nests several more
-   plain block wrapper divs (stVerticalBlock > element-container >
-   stMarkdown) between the column above and .app-header itself, and
-   none of those carry any height or centering of their own, so the
-   centering never reaches the actual brand content. This forces every
-   level of that chain to stretch to full height and center its child,
-   so it actually cascades all the way down. */
-.st-key-topnav [data-testid="column"] [data-testid="stVerticalBlock"],
-.st-key-topnav [data-testid="stColumn"] [data-testid="stVerticalBlock"],
-.st-key-topnav [data-testid="stVerticalBlockBorderWrapper"],
-.st-key-topnav [data-testid="element-container"],
-.st-key-topnav [data-testid="stMarkdown"],
-.st-key-topnav [data-testid="stMarkdownContainer"] {
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-}
+   top instead of centered. The cause: Streamlit nests a few of its own
+   plain wrapper divs between the column above and .app-header, and
+   whatever they're actually called in this Streamlit version, none of
+   them were passing height/centering down to it. Rather than guess
+   more testid names, .app-header is pulled out of normal flow and
+   absolutely positioned to fill its column directly — that only cares
+   about the nearest positioned ancestor (the column, now
+   position:relative with a real height above), so it works no matter
+   how many anonymous wrapper divs Streamlit puts in between, or what
+   it calls them. */
 .st-key-topnav .app-header {
+    position: absolute !important;
+    inset: 0 !important;
     display: flex !important;
     align-items: center !important;
     width: 100%;
@@ -855,31 +873,41 @@ div.stMarkdown:has(> .ck-home-subtext) {
     width: 100%;
     margin-left: auto !important;
     margin-right: auto !important;
-    margin-bottom: 32px !important;
+    margin-top: 20px !important;
+    margin-bottom: 40px !important;
     padding-left: 20px;
     padding-right: 20px;
+    padding-top: 4px;
+    padding-bottom: 4px;
     box-sizing: border-box;
 }
 /* display:flex + justify-content:center so the fixed-width card below
    centers itself with visible margin on both sides, instead of a block
    link stretching edge-to-edge and the card filling all of it.
-   NOTE: spacing between the two cards is handled via `gap` on the
-   actual Streamlit flex container below, NOT margin-bottom here. Each
-   card comes from its own separate st.markdown() call, so each
-   .dash-card-link is the ONLY child of its own wrapper div — meaning
-   :last-child matches BOTH of them (each is "last" within its own
-   parent), not just the second card. A margin-bottom + :last-child
-   override here would zero out on both, which is exactly why there was
-   no visible gap. */
+   NOTE: both cards are now emitted from ONE st.markdown() call in
+   app.py, so the two <a class="dash-card-link"> tags are guaranteed
+   true adjacent siblings in the actual DOM — no dependency on
+   Streamlit's own internal wrapper-div structure (which varies between
+   versions and is why earlier :last-child / nested-gap attempts here
+   didn't reliably land). The adjacent-sibling selector below only ever
+   matches the second card, so it's a plain, version-proof top margin. */
 .st-key-iconrow_welcome .dash-card-link {
+
     display: flex !important;
     justify-content: center !important;
 }
 /* This is Streamlit's own flex column that directly holds the two card
-   wrappers as siblings — overriding its gap is the reliable way to
-   space them, since it isn't affected by the :last-child issue above. */
+   wrappers as siblings — kept as a harmless extra in case it applies,
+   but the adjacent-sibling rule below is the one actually guaranteed
+   to work regardless of Streamlit's internal DOM. */
 .st-key-iconrow_welcome [data-testid="stVerticalBlock"] {
     gap: 28px !important;
+}
+/* Guaranteed-to-work spacing: since both cards now come from one
+   st.markdown() call, this plain CSS sibling selector needs nothing
+   from Streamlit's own container structure at all. */
+.st-key-iconrow_welcome .dash-card-link + .dash-card-link {
+    margin-top: 28px !important;
 }
 /* Fixed pixel width — deliberately NOT a percentage of the viewport —
    so the card stays the same physical size on every screen instead of
