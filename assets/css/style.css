@@ -768,33 +768,45 @@ section[data-testid="stSidebar"] * {
     min-height: 56px !important;
     max-height: 64px !important;
     width: 100%;
+    overflow: visible !important;
 }
 .st-key-topnav [data-testid="column"],
 .st-key-topnav [data-testid="stColumn"] {
     display: flex !important;
     align-items: center !important;
     height: 100% !important;
-    position: relative !important;
+    overflow: visible !important;
 }
-/* The DevTools screenshots showed the actual bug: .app-header measured
-   only 26px tall inside the 56–64px sticky bar, sitting flush at the
-   top instead of centered. The cause: Streamlit nests a few of its own
-   plain wrapper divs between the column above and .app-header, and
-   whatever they're actually called in this Streamlit version, none of
-   them were passing height/centering down to it. Rather than guess
-   more testid names, .app-header is pulled out of normal flow and
-   absolutely positioned to fill its column directly — that only cares
-   about the nearest positioned ancestor (the column, now
-   position:relative with a real height above), so it works no matter
-   how many anonymous wrapper divs Streamlit puts in between, or what
-   it calls them. */
+/* The DevTools screenshots showed .app-header measuring only 26px tall
+   inside the 56–64px bar, sitting flush at the top instead of centered
+   — Streamlit nests its own anonymous wrapper divs between the column
+   and .app-header, and whatever they're actually called in this
+   Streamlit version, none of them were passing height/centering
+   through. A follow-up attempt to fix that with position:absolute made
+   the whole thing disappear instead — the likely cause is one of those
+   same anonymous wrappers collapsing to zero height (since its only
+   child had just been pulled out of flow) while also clipping via
+   overflow, hiding an absolutely-positioned child rendered past its
+   edge. This version avoids both problems at once: rather than guess
+   at testid/class names again, it targets EVERY plain <div> inside the
+   column except the ones with their own known, correct styling
+   (.app-header/.brand/.txt), forcing all of them to stretch to full
+   height, center their single child, and never clip — all while
+   staying in normal flow, so there's nothing for an unknown ancestor
+   to clip in the first place. */
+.st-key-topnav [data-testid="column"] div:not(.app-header):not(.brand):not(.txt),
+.st-key-topnav [data-testid="stColumn"] div:not(.app-header):not(.brand):not(.txt) {
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: visible !important;
+}
 .st-key-topnav .app-header {
-    position: absolute !important;
-    inset: 0 !important;
     display: flex !important;
     align-items: center !important;
     width: 100%;
     height: 100%;
+    overflow: visible !important;
     border-bottom: none !important;
     padding: 0 !important;
     margin-bottom: 0 !important;
