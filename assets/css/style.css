@@ -733,6 +733,29 @@ iframe[height="0"][width="0"] {
     padding: 0 !important;
     margin-bottom: 0 !important;
 }
+/* Streamlit wraps every widget (each button, each markdown block) in its
+   own element-container div, and gives those a small default top/bottom
+   margin for normal vertical spacing between stacked widgets. Inside the
+   topnav's single row, that default margin can differ slightly between
+   the button columns and the markdown (logo+name) column, which is what
+   was nudging the logo/name a little off the buttons' vertical center.
+   Zeroing it out here means the row's height and centering come purely
+   from the rules above, consistently for every column. */
+.st-key-topnav [data-testid="element-container"],
+.st-key-topnav [data-testid="stVerticalBlock"],
+.st-key-topnav div.stButton {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+/* Center the ◀ / ☰ glyph inside its own button box via flexbox instead
+   of relying on the font's line-height, which can render a hair
+   off-center depending on the font/browser. */
+.st-key-topnav button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
 @supports (padding-top: env(safe-area-inset-top)) {
     .st-key-topnav {
         padding-top: max(8px, env(safe-area-inset-top)) !important;
@@ -818,15 +841,39 @@ div.stMarkdown:has(> .ck-home-subtext) {
 
 .st-key-iconrow_welcome .dash-card-v2-body {
     position: relative;
-    padding-right: 34px !important;
 }
-.st-key-iconrow_welcome .dash-card-v2-body::after {
-    content: "\203A";
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 22px;
-    font-weight: 700;
-    opacity: 0.35;
+
+/* ---- "Explore" CTA button — replaces the old whole-card tap affordance.
+   Only this button navigates now; the card itself is no longer a link.
+   Width is 2/3 of the card, centered, with the app's accent color
+   (#b45309, the same amber used for button hovers/focus elsewhere in
+   theme_light.css) so it reads as a clear call-to-action. ---- */
+.dash-card-v2-cta {
+    display: flex;
+    justify-content: center;
+    padding: 0 16px 16px 16px;
+    box-sizing: border-box;
+}
+.dash-card-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 66.66%;
+    min-height: 44px;
+    border-radius: 12px;
+    background: #b45309;
+    color: #fffdf8 !important;
+    font-weight: 600;
+    font-size: 14.5px;
+    text-decoration: none !important;
+    box-sizing: border-box;
+    transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+.dash-card-btn:hover,
+.dash-card-btn:focus-visible {
+    background: #96450a;
+    box-shadow: 0 4px 14px rgba(180, 83, 9, 0.28);
+}
+.dash-card-btn:active {
+    transform: scale(0.97);
 }
