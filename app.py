@@ -825,7 +825,6 @@ def render_welcome():
                 <div class="dash-card-v2-img" style="background-image:url('{_fluid_photo}')"></div>
                 <div class="dash-card-v2-bottom">
                     <div class="dash-card-v2-body">
-                        <div class="icon">🌡️</div>
                         <div class="txt">
                             <h3 style="color:{_card_title_c};margin:0;">Explore Thermodynamics Properties</h3>
                         </div>
@@ -839,7 +838,6 @@ def render_welcome():
                 <div class="dash-card-v2-img" style="background-image:url('{_cycle_photo}')"></div>
                 <div class="dash-card-v2-bottom">
                     <div class="dash-card-v2-body">
-                        <div class="icon">⚡</div>
                         <div class="txt">
                             <h3 style="color:{_card_title_c};margin:0;">Simulate Standard Thermodynamics Cycle</h3>
                         </div>
