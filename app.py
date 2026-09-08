@@ -912,7 +912,13 @@ def render_header(active_label):
     wsteps = get_wizard_steps()
     idx = wsteps.index(step) if step in wsteps else 0
     with st.container(key="topnav"):        
-        c_prev, c_brand, c_burger = st.columns([0.55, 7.0, 0.55])
+        # Wider side columns than before (was [0.55, 7.0, 0.55]) — the old
+        # ratio gave the prev/burger buttons only ~7% of the row's width
+        # each, which at real phone widths is narrower than the buttons
+        # themselves, so the browser was flex-shrinking them back down no
+        # matter what size we set in CSS. This gives each button column
+        # enough room to actually render at full size.
+        c_prev, c_brand, c_burger = st.columns([1.3, 5.4, 1.3])
         with c_prev:
             can_prev = idx > 0
             if st.button("◀", key="wiz_prev_top", disabled=not can_prev, help="Previous"):
