@@ -1046,3 +1046,39 @@ div.stMarkdown:has(> .ck-home-subtext) {
     opacity: 0.6;
     font-size: 14.5px;
 }
+
+/* =======================================================================
+   GLOBAL BLOCK SPACING — consistent top/bottom/left/right margin and
+   padding for content blocks across the whole app (not just the home
+   screen and fluid list, which already have their own deliberate,
+   tighter spacing rules — those keep winning since they use !important
+   and load after this). Two parts:
+     1. .block-container gets consistent left/right/bottom padding at
+        every screen width, not just under 640px, so the app never sits
+        flush against the screen edge on any device.
+     2. A gentle floor under every generic content block (headings,
+        custom info boxes, inputs, tables, charts, alerts) so nothing
+        can end up touching its neighbor the way the critical-point box
+        was touching the "Select Properties" dropdown above it. This is
+        deliberately NOT !important — anywhere spacing is already
+        explicitly set (cards, fluid rows, the top nav), that more
+        specific rule keeps winning; this only fills in the gaps.
+   ---- */
+.block-container {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    padding-bottom: 32px !important;
+}
+[data-testid="stAppViewContainer"] [data-testid="element-container"] {
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
+/* The critical-point box (Tc/Pc + active fluid) that sits right above
+   the "Select Properties To Compute" dropdown — this was the specific
+   spot reported as touching the text above/below it. Its own padding
+   was fine, it just had no external margin of its own to rely on. */
+.small-box {
+    margin: 18px 0 !important;
+    padding: 14px 16px !important;
+}
