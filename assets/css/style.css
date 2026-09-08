@@ -774,8 +774,25 @@ section[data-testid="stSidebar"] * {
 .st-key-topnav [data-testid="stColumn"] {
     display: flex !important;
     align-items: center !important;
+    justify-content: center !important;
     height: 100% !important;
     overflow: visible !important;
+}
+/* The two utility iframes injected at the very top of the page (the
+   ones running the Streamlit-chrome-cleanup / scroll-indicator /
+   chart-fullscreen JS) are 0×0 and invisible, but their wrapping
+   Streamlit element still normally takes up a slot in the page's flex
+   gap — this is the "hidden element above the logo" showing up in the
+   inspector. Removing them isn't an option (that JS is load-bearing
+   for a lot of what's already been fixed), but display:none takes them
+   out of layout entirely — hidden iframes still run their srcdoc
+   script normally, so nothing about their function changes, only their
+   footprint. */
+iframe[height="0"][width="0"] {
+    display: none !important;
+}
+[data-testid="element-container"]:has(> iframe[height="0"][width="0"]) {
+    display: none !important;
 }
 /* The DevTools screenshots showed .app-header measuring only 26px tall
    inside the 56–64px bar, sitting flush at the top instead of centered
@@ -828,12 +845,12 @@ section[data-testid="stSidebar"] * {
     align-items: center !important;
     gap: 10px;
 }
-/* The prev/back arrow is disabled (inert) on the home screen — hide it
-   there so the bar reads as logo-left / hamburger-right, without
-   removing the button or changing its behavior on screens where it's
-   enabled and functional (it stays visible + usable there). */
+/* Disabled buttons in the topnav (currently just the inert prev/back
+   arrow when there's no previous step) keep the browser's normal
+   greyed-out disabled look now, rather than being invisible — pointer
+   events are still blocked so it can't be tapped, but it's visible for
+   a consistent 3-item row on every page. */
 .st-key-topnav button:disabled {
-    opacity: 0 !important;
     pointer-events: none !important;
 }
 @media (max-width: 640px) {
