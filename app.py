@@ -7,6 +7,7 @@ import io
 import os
 import time
 import base64
+from urllib.parse import quote as _urlquote
 
 from CoolProp.CoolProp import PhaseSI, PropsSI
 
@@ -746,6 +747,13 @@ if "cycle" in _qp:
         st.session_state.wizard_step = "workspace"
     st.query_params.clear()
     st.rerun()
+if "fluid" in _qp:
+    _req_fluid = _qp["fluid"]
+    if _req_fluid in fluid_map:
+        st.session_state.fluid_select = _req_fluid
+        st.session_state.wizard_step = "workspace"
+    st.query_params.clear()
+    st.rerun()
 if "restart" in _qp:
     st.session_state.wizard_step = "welcome"
     st.session_state.wizard_mode = None
@@ -814,26 +822,30 @@ def render_welcome():
             f"""
             <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
                 <div class="dash-card-v2-img" style="background-image:url('{_fluid_photo}')"></div>
-                <div class="dash-card-v2-body">
-                    <div class="icon">🌡️</div>
-                    <div class="txt">
-                        <h3 style="color:{_card_title_c};margin:0;">Explore thermodynamics properties</h3>
+                <div class="dash-card-v2-bottom">
+                    <div class="dash-card-v2-body">
+                        <div class="icon">🌡️</div>
+                        <div class="txt">
+                            <h3 style="color:{_card_title_c};margin:0;">Explore thermodynamics properties</h3>
+                        </div>
                     </div>
-                </div>
-                <div class="dash-card-v2-cta">
-                    <a class="dash-card-btn" href="?mode=explorer&{_theme_qs()}" target="_self">Explore</a>
+                    <div class="dash-card-v2-cta">
+                        <a class="dash-card-btn" href="?mode=explorer&{_theme_qs()}" target="_self">Explore</a>
+                    </div>
                 </div>
             </div>
             <div class="dash-card-v2" style="background:{_card_bg};border-color:{_card_border};">
                 <div class="dash-card-v2-img" style="background-image:url('{_cycle_photo}')"></div>
-                <div class="dash-card-v2-body">
-                    <div class="icon">⚡</div>
-                    <div class="txt">
-                        <h3 style="color:{_card_title_c};margin:0;">Analyse power cycle</h3>
+                <div class="dash-card-v2-bottom">
+                    <div class="dash-card-v2-body">
+                        <div class="icon">⚡</div>
+                        <div class="txt">
+                            <h3 style="color:{_card_title_c};margin:0;">Analyse power cycle</h3>
+                        </div>
                     </div>
-                </div>
-                <div class="dash-card-v2-cta">
-                    <a class="dash-card-btn" href="?mode=cycles&{_theme_qs()}" target="_self">Explore</a>
+                    <div class="dash-card-v2-cta">
+                        <a class="dash-card-btn" href="?mode=cycles&{_theme_qs()}" target="_self">Explore</a>
+                    </div>
                 </div>
             </div>
             """,
@@ -844,27 +856,56 @@ def render_welcome():
     render_footer()
 def render_fluid_select():
     render_header("Choose Working Fluid")
-    st.markdown("### Select a working fluid")
-    st.caption("This fluid is used for every calculation on the next screen.")
-    fluid_icons = {"Water": "💧", "CO₂": "☁️", "Ammonia": "🧪", "R134a": "❄️", "Air": "💨"}  
-    with st.container(key="fluid_select_grid"):
-        cols = st.columns(len(fluid_map))
-        for col, fname in zip(cols, fluid_map.keys()):
-            with col:
-                is_sel = st.session_state.get("fluid_select") == fname
-                btn_label = f"{fluid_icons.get(fname, '⚛️')}\n\n{'✅ ' if is_sel else ''}{fname}"
-                if st.button(btn_label, key=f"fluidcard_{fname}", use_container_width=True):
-                    st.session_state.fluid_select = fname
-                    st.session_state.wizard_step = "workspace"
-                    st.rerun()
-    st.divider()
-    if st.session_state.get("fluid_select"):
-        st.success(
-            f"Selected fluid: **{st.session_state['fluid_select']}** — "
-            f"tap another fluid above to change it."
+    st.markdown('<h2 class="ck-list-heading">Select a working fluid</h2>', unsafe_allow_html=True)
+    st.markdown(
+        '<p class="ck-list-subtext">This fluid is used for every calculation on the next screen.</p>',
+        unsafe_allow_html=True,
+    )
+
+    # Circle background color per fluid — purely decorative, just to give
+    # each row a distinct identity at a glance the way the reference
+    # design does. Doesn't affect fluid_map, CoolProp lookups, or
+    # anything else functional.
+    fluid_icons = {"Water": "💧", "CO₂": "☁️", "Ammonia": "🧪", "R134a": "❄️", "Air": "💨"}
+    fluid_icon_bg = {
+        "Water": "#dbeafe", "CO₂": "#e5e7eb", "Ammonia": "#dcfce7",
+        "R134a": "#cffafe", "Air": "#ede9fe",
+    }
+
+    with st.container(key="fluid_search_wrap"):
+        st.text_input(
+            "Search fluid", placeholder="🔍  Search fluid...",
+            label_visibility="collapsed", key="fluid_search",
         )
-    else:
-        st.info("Pick a fluid above to continue.")
+    _query = st.session_state.get("fluid_search", "").strip().lower()
+
+    def _matches(fname):
+        if not _query:
+            return True
+        return _query in fname.lower() or _query in fluid_map[fname].lower()
+
+    visible = [f for f in fluid_map if _matches(f)]
+    selected = st.session_state.get("fluid_select")
+
+    with st.container(key="fluid_list_wrap"):
+        if not visible:
+            st.markdown(
+                f'<p class="ck-list-empty">No fluids match &ldquo;{_query}&rdquo;.</p>',
+                unsafe_allow_html=True,
+            )
+        else:
+            _rows = []
+            for fname in visible:
+                _sel_class = " sel" if fname == selected else ""
+                _bg = fluid_icon_bg.get(fname, "#e5e7eb")
+                _rows.append(
+                    f'<a class="fluid-row{_sel_class}" href="?fluid={_urlquote(fname)}&{_theme_qs()}" target="_self">'
+                    f'<span class="fluid-row-icon" style="background:{_bg};">{fluid_icons.get(fname, "⚛️")}</span>'
+                    f'<span class="fluid-row-name">{fname}</span>'
+                    f'</a>'
+                )
+            st.markdown('<div class="fluid-list">' + "".join(_rows) + '</div>', unsafe_allow_html=True)
+
     render_footer()
 def render_header(active_label):    
     step = st.session_state.wizard_step
