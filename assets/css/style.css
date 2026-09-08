@@ -1,3 +1,7 @@
+:root, html, body {
+    color-scheme: light !important;
+}
+
 #MainMenu {
     visibility: hidden;
     display: none;
@@ -684,6 +688,7 @@ section[data-testid="stSidebar"] * {
         z-index: 999990 !important;
     }
 }
+
 .ck-chart-fullscreen {
     position: fixed !important;
     inset: 0 !important;
@@ -765,7 +770,12 @@ iframe[height="0"][width="0"] {
 .st-key-topnav .app-header .brand {
     height: 54px !important;
 }
-
+/* Pin the prev button flush to the row's true left edge and the
+   hamburger flush to its true right edge, regardless of button size —
+   without this, the browser centers each button within its own column,
+   which (now that the columns are wider, to give the buttons room to
+   render at full size) leaves visible empty space outside them instead
+   of them sitting right at the edges. */
 .st-key-topnav [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child,
 .st-key-topnav [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
     justify-content: flex-start !important;
@@ -847,6 +857,7 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-right: auto !important;
 }
 
+
 .st-key-iconrow_welcome .dash-card-v2 {
     height: 260px !important;
     display: flex !important;
@@ -865,6 +876,7 @@ div.stMarkdown:has(> .ck-home-subtext) {
     flex-direction: column !important;
     justify-content: space-between !important;
 }
+
 
 .st-key-iconrow_welcome .dash-card-v2 + .dash-card-v2 {
     margin-top: 28px !important;
@@ -912,15 +924,6 @@ div.stMarkdown:has(> .ck-home-subtext) {
     box-shadow: 0 3px 10px rgba(163, 76, 9, 0.3);
 }
 
-/* =======================================================================
-   FLUID SELECTION LIST — "Select a working fluid" page, redesigned from
-   a grid of square buttons into a searchable vertical list (icon in a
-   colored circle + name per row), matching a reference mockup. Selecting
-   a fluid still works exactly as before — one tap selects it and moves
-   straight to the next step — it just happens via a link that carries
-   ?fluid=<name> (handled next to the existing ?mode=/?cycle= handlers
-   in app.py) instead of a Streamlit button, since only custom HTML/CSS
-   can render the colored icon circles the mockup uses. ---- */
 .ck-list-heading {
     font-size: 26px !important;
     font-weight: 700 !important;
@@ -1014,7 +1017,6 @@ div.stMarkdown:has(> .ck-home-subtext) {
     font-size: 14.5px;
 }
 
-
 .block-container {
     padding-left: 18px !important;
     padding-right: 18px !important;
@@ -1024,7 +1026,6 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-top: 0;
     margin-bottom: 18px;
 }
-
 .small-box {
     margin: 18px 0 !important;
     padding: 14px 16px !important;
