@@ -851,6 +851,33 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-right: auto !important;
 }
 
+/* Image = exactly half the card height, everything else (icon, text,
+   button) = the other half. This needs a fixed total card height for
+   "half" to mean anything — .dash-card-v2-img and .dash-card-v2-bottom
+   are the two flex children, each pinned to flex: 0 0 50%, so they
+   split that fixed height evenly regardless of how much text wraps.
+   Within the bottom half, justify-content:space-between keeps the text
+   anchored near the image and the button anchored near the card's
+   bottom edge, instead of both crowding together at the top. */
+.st-key-iconrow_welcome .dash-card-v2 {
+    height: 420px !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.st-key-iconrow_welcome .dash-card-v2-img {
+    flex: 0 0 50% !important;
+    height: 50% !important;
+    min-height: 0 !important;
+}
+.st-key-iconrow_welcome .dash-card-v2-bottom {
+    flex: 0 0 50% !important;
+    height: 50% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+}
+
 /* Restores the 28px breathing room between the Fluids and Cycle cards.
    This used to be driven by ".dash-card-link + .dash-card-link" — but
    the cards are no longer wrapped in an <a class="dash-card-link">
