@@ -794,8 +794,9 @@ def render_cycle_type_select():
     render_footer()
 def render_welcome():
     render_header("")
-    st.markdown('<h2 class="ck-home-heading">What do you want to work on?</h2>', unsafe_allow_html=True)
-    st.markdown('<p class="ck-home-subtext">Choose a topic to start learning.</p>', unsafe_allow_html=True)
+    # Heading + subtext ("What do you want to work on? / Choose a topic
+    # to start learning.") removed per product decision — the cards
+    # speak for themselves.
 
     # Photos (base64 data URIs) and per-theme colors used in the card HTML
     _fluid_photo = _img_data_uri(FLUID_IMG_PATH)
@@ -826,7 +827,7 @@ def render_welcome():
                     <div class="dash-card-v2-body">
                         <div class="icon">🌡️</div>
                         <div class="txt">
-                            <h3 style="color:{_card_title_c};margin:0;">Explore thermodynamics properties</h3>
+                            <h3 style="color:{_card_title_c};margin:0;">Explore Thermodynamics Properties</h3>
                         </div>
                     </div>
                     <div class="dash-card-v2-cta">
@@ -840,7 +841,7 @@ def render_welcome():
                     <div class="dash-card-v2-body">
                         <div class="icon">⚡</div>
                         <div class="txt">
-                            <h3 style="color:{_card_title_c};margin:0;">Analyse power cycle</h3>
+                            <h3 style="color:{_card_title_c};margin:0;">Simulate Standard Thermodynamics Cycle</h3>
                         </div>
                     </div>
                     <div class="dash-card-v2-cta">
@@ -858,7 +859,7 @@ def render_fluid_select():
     render_header("Choose Working Fluid")
     st.markdown('<h2 class="ck-list-heading">Select a working fluid</h2>', unsafe_allow_html=True)
     st.markdown(
-        '<p class="ck-list-subtext">This fluid is used for every calculation on the next screen.</p>',
+        '<p class="ck-list-subtext">Selected fluid applies to all further calculations</p>',
         unsafe_allow_html=True,
     )
 
@@ -961,7 +962,7 @@ def render_nav_sidebar():
         with _sb_brand_col:
             st.markdown(
                 f'<div class="nav-brand">{_logo_img_html("brand-logo nav-logo")}'
-                f'<div class="txt">{APP_NAME}<small>Fluid &amp; Cycle Analysis</small></div></div>',
+                f'<div class="txt">{APP_NAME}</div></div>',
                 unsafe_allow_html=True
             )
         st.markdown(
@@ -2389,9 +2390,7 @@ if st.session_state.app_view == "cycles":
 
 render_topbar("Fluid Property Explorer")
 
-st.subheader("Inputs")
-
-# Critical temperature/pressure block — right after the "Inputs" heading,
+# Critical temperature/pressure block — right at the top of this screen,
 # before mode selection. fmt_canon() keeps Tc/Pc in sync with whatever T/P
 # unit was last chosen (persisted in session_state), so this still reflects
 # the current unit choice even though it now renders before that dropdown.
