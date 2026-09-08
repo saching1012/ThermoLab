@@ -96,19 +96,19 @@ div[class*="st-key-igrid_"] {
     .st-key-topnav [data-testid="column"]:nth-child(2),
     .st-key-topnav [data-testid="stColumn"]:nth-child(2) {
         flex: 1 1 auto !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         padding: 0 6px !important;
         min-width: 0 !important;
     }
 
     .app-header {
-        overflow: hidden;
+        overflow: visible;
         width: 100%;
     }
 
     .app-header .brand {
         min-width: 0;
-        overflow: hidden;
+        overflow: visible;
         display: flex;
         align-items: center;
     }
@@ -794,8 +794,8 @@ section[data-testid="stSidebar"] * {
    height, center their single child, and never clip — all while
    staying in normal flow, so there's nothing for an unknown ancestor
    to clip in the first place. */
-.st-key-topnav [data-testid="column"] div:not(.app-header):not(.brand):not(.txt),
-.st-key-topnav [data-testid="stColumn"] div:not(.app-header):not(.brand):not(.txt) {
+.st-key-topnav [data-testid="column"]:nth-child(2) div:not(.app-header):not(.brand):not(.txt),
+.st-key-topnav [data-testid="stColumn"]:nth-child(2) div:not(.app-header):not(.brand):not(.txt) {
     height: 100% !important;
     display: flex !important;
     align-items: center !important;
