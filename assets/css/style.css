@@ -860,7 +860,7 @@ div.stMarkdown:has(> .ck-home-subtext) {
    anchored near the image and the button anchored near the card's
    bottom edge, instead of both crowding together at the top. */
 .st-key-iconrow_welcome .dash-card-v2 {
-    height: 420px !important;
+    height: 260px !important;
     display: flex !important;
     flex-direction: column !important;
 }
