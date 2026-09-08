@@ -917,7 +917,16 @@ def render_header(active_label):
         # themselves, so the browser was flex-shrinking them back down no
         # matter what size we set in CSS. This gives each button column
         # enough room to actually render at full size.
-        c_prev, c_brand, c_burger = st.columns([1.3, 5.4, 1.3])
+        # Widened again (was [1.3, 5.4, 1.3]) — that ratio was sized for
+        # a smaller button (48-54px). The prev/hamburger buttons have
+        # since grown to 62px across a couple of follow-up size
+        # increases, but this ratio was never revisited alongside them,
+        # so at real phone widths each side column ended up narrower
+        # than the button it needs to hold — the button (which can't
+        # shrink, flex-shrink:0) then overflowed into the brand column's
+        # space, which is what was squeezing "Curious Kelvin" down to
+        # "Curiou...". This ratio actually fits the current 62px buttons.
+        c_prev, c_brand, c_burger = st.columns([1.8, 4.8, 1.8])
         with c_prev:
             can_prev = idx > 0
             if st.button("◀", key="wiz_prev_top", disabled=not can_prev, help="Previous"):
