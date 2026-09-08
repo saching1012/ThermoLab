@@ -638,6 +638,29 @@ section[data-testid="stSidebar"] .nav-brand .txt small {
 section[data-testid="stSidebar"] * {
     box-sizing: border-box;
 }
+
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] small {
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+}
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary,
+section[data-testid="stSidebar"] [data-testid="stExpander"] summary p {
+    font-size: 15.5px !important;
+}
+section[data-testid="stSidebar"] div.stButton > button {
+    font-size: 15px !important;
+}
+section[data-testid="stSidebar"] .sb-profile-txt {
+    font-size: 15px !important;
+}
+section[data-testid="stSidebar"] .small-box {
+    font-size: 15px !important;
+    line-height: 1.55 !important;
+    margin: 10px 0 !important;
+}
 @media (max-width: 640px) {
     .block-container {
         width: 100% !important;
@@ -770,12 +793,7 @@ iframe[height="0"][width="0"] {
 .st-key-topnav .app-header .brand {
     height: 54px !important;
 }
-/* Pin the prev button flush to the row's true left edge and the
-   hamburger flush to its true right edge, regardless of button size —
-   without this, the browser centers each button within its own column,
-   which (now that the columns are wider, to give the buttons room to
-   render at full size) leaves visible empty space outside them instead
-   of them sitting right at the edges. */
+
 .st-key-topnav [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child,
 .st-key-topnav [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
     justify-content: flex-start !important;
@@ -1026,6 +1044,7 @@ div.stMarkdown:has(> .ck-home-subtext) {
     margin-top: 0;
     margin-bottom: 18px;
 }
+
 .small-box {
     margin: 18px 0 !important;
     padding: 14px 16px !important;
