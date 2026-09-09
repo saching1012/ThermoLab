@@ -171,10 +171,11 @@ components.html(
                 btn.innerHTML = '⛶';
                 btn.title = 'Toggle fullscreen';
                 btn.style.cssText =
-                    'position:absolute;top:6px;right:6px;z-index:50;' +
-                    'width:30px;height:30px;border-radius:8px;border:none;' +
-                    'background:rgba(0,0,0,0.55);color:#fff;font-size:16px;' +
-                    'cursor:pointer;line-height:1;';
+                    'position:absolute;top:8px;right:46px;z-index:50;' +
+                    'width:32px;height:32px;border-radius:10px;' +
+                    'border:1px solid rgba(180,83,9,0.35);' +
+                    'background:rgba(255,253,248,0.95);color:#b45309;font-size:16px;' +
+                    'cursor:pointer;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.12);';
                 btn.addEventListener('click', function (e) {
                     e.stopPropagation();
                     if (doc.fullscreenElement === chart) {
@@ -843,7 +844,7 @@ def render_welcome():
                         </div>
                     </div>
                     <div class="dash-card-v2-cta">
-                        <a class="dash-card-btn" href="?mode=cycles&{_theme_qs()}" target="_self">Explore</a>
+                        <a class="dash-card-btn" href="?mode=cycles&{_theme_qs()}" target="_self">Simulate</a>
                     </div>
                 </div>
             </div>
@@ -2408,14 +2409,14 @@ try:
     _pcrit_disp, _pcrit_u = fmt_canon(_pcrit_bar, 'P', 2)
     st.markdown(
         '<div class="small-box critical-box">'
-        f'<b>Active Fluid:</b> {fluid_display}<br>'
+        f'<span class="cb-fluid-line"><b>Active Fluid:</b> {fluid_display}</span><br>'
         f'<b>Critical Point:</b> Tc = {_tcrit_disp} {_tcrit_u} &nbsp;|&nbsp; '
         f'Pc = {_pcrit_disp} {_pcrit_u}</div>',
         unsafe_allow_html=True
     )
 except Exception:
     st.markdown(
-        f'<div class="small-box critical-box"><b>Active Fluid:</b> {fluid_display}</div>',
+        f'<div class="small-box critical-box"><span class="cb-fluid-line"><b>Active Fluid:</b> {fluid_display}</span></div>',
         unsafe_allow_html=True
     )
 
