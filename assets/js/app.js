@@ -30,10 +30,6 @@
                 backface-visibility: hidden;
                 -webkit-backface-visibility: hidden;
             }
-
-            body.thermolab-drawer-open {
-                overflow: hidden !important;
-            }
         `;
 
         doc.head.appendChild(style);
@@ -133,195 +129,11 @@
         }
     }
 
-    function getSidebar() {
-        return doc.querySelector(
-            'section[data-testid="stSidebar"]'
-        );
-    }
-
-    function getBackdrop() {
-        return doc.querySelector(
-            ".st-key-sidebar_backdrop"
-        );
-    }
-
-    function getBurger() {
-        return doc.querySelector(
-            ".st-key-burger_toggle"
-        );
-    }
-
-    function openSidebar() {
-        const sidebar = getSidebar();
-        const backdrop = getBackdrop();
-        const burger = getBurger();
-
-        if (!sidebar) return;
-
-        sidebar.style.setProperty(
-            "display",
-            "block",
-            "important"
-        );
-
-        sidebar.style.setProperty(
-            "visibility",
-            "visible",
-            "important"
-        );
-
-        sidebar.style.setProperty(
-            "transform",
-            "translate3d(0,0,0)",
-            "important"
-        );
-
-        sidebar.style.setProperty(
-            "pointer-events",
-            "auto",
-            "important"
-        );
-
-        sidebar.setAttribute(
-            "aria-hidden",
-            "false"
-        );
-
-        if (backdrop) {
-            backdrop.style.setProperty(
-                "display",
-                "block",
-                "important"
-            );
-
-            backdrop.style.setProperty(
-                "visibility",
-                "visible",
-                "important"
-            );
-
-            backdrop.style.setProperty(
-                "pointer-events",
-                "auto",
-                "important"
-            );
-        }
-
-        if (burger) {
-            burger.style.setProperty(
-                "visibility",
-                "hidden",
-                "important"
-            );
-        }
-
-        doc.body.classList.add(
-            "thermolab-drawer-open"
-        );
-    }
-
-    function closeSidebar() {
-        const sidebar = getSidebar();
-        const backdrop = getBackdrop();
-        const burger = getBurger();
-
-        if (!sidebar) return;
-
-        sidebar.style.setProperty(
-            "transform",
-            "translate3d(100%,0,0)",
-            "important"
-        );
-
-        sidebar.style.setProperty(
-            "pointer-events",
-            "none",
-            "important"
-        );
-
-        sidebar.setAttribute(
-            "aria-hidden",
-            "true"
-        );
-
-        if (backdrop) {
-            backdrop.style.setProperty(
-                "display",
-                "none",
-                "important"
-            );
-
-            backdrop.style.setProperty(
-                "visibility",
-                "hidden",
-                "important"
-            );
-
-            backdrop.style.setProperty(
-                "pointer-events",
-                "none",
-                "important"
-            );
-        }
-
-        if (burger) {
-            burger.style.setProperty(
-                "visibility",
-                "visible",
-                "important"
-            );
-        }
-
-        doc.body.classList.remove(
-            "thermolab-drawer-open"
-        );
-    }
-
-    function wireButton(button, handler) {
-        if (!button) return;
-
-        if (button.dataset.thermolabWired === "1") {
-            return;
-        }
-
-        button.dataset.thermolabWired = "1";
-
-        button.addEventListener(
-            "click",
-            function () {
-                handler();
-            },
-            false
-        );
-    }
-
-    function wireNavigation() {
-        const burger =
-            doc.querySelector(
-                ".st-key-burger_toggle button"
-            );
-
-        const close =
-            doc.querySelector(
-                ".st-key-sidebar_close_x button"
-            );
-
-        const backdrop =
-            doc.querySelector(
-                ".st-key-sidebar_backdrop button"
-            );
-
-        wireButton(burger, openSidebar);
-        wireButton(close, closeSidebar);
-        wireButton(backdrop, closeSidebar);
-    }
-
     function initialize() {
         injectStyle();
         ensureManifest();
         hideBadges();
         fixTopNavigation();
-        wireNavigation();
     }
 
     initialize();
@@ -332,7 +144,6 @@
                 requestAnimationFrame(function () {
                     hideBadges();
                     fixTopNavigation();
-                    wireNavigation();
                 });
             });
 
@@ -352,7 +163,10 @@
             "keydown",
             function (event) {
                 if (event.key === "Escape") {
-                    closeSidebar();
+                    var closeBtn = doc.querySelector(
+                        ".st-key-sidebar_close_x button"
+                    );
+                    if (closeBtn) closeBtn.click();
                 }
             },
             false
