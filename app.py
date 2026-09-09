@@ -170,79 +170,6 @@ components.html(
         }
         addFullscreenButtons();
         setInterval(addFullscreenButtons, 1000);
-
-        var ckLastStep = null;
-        var ckSyncing = false;
-        var ckSkipCount = 0;
-
-        function ckInitBaseline() {
-            var marker = doc.getElementById('ck-step-marker');
-            if (!marker) return;
-            var step = marker.getAttribute('data-step');
-            if (!step || ckLastStep !== null) return;
-            ckLastStep = step;
-            try {
-                var url = new URL(doc.defaultView.location.href);
-                url.searchParams.set('ckstep', step);
-                doc.defaultView.history.replaceState({ ckstep: step }, '', url.toString());
-            } catch (err) {}
-        }
-        ckInitBaseline();
-        setInterval(function () {
-            if (ckSyncing) return;
-            if (ckLastStep === null) {
-                ckInitBaseline();
-                return;
-            }
-            var marker = doc.getElementById('ck-step-marker');
-            if (!marker) return;
-            var step = marker.getAttribute('data-step');
-            if (step && step !== ckLastStep) {
-                ckLastStep = step;
-                ckSkipCount = 0;
-            }
-        }, 400);
-
-        doc.addEventListener('click', function (event) {
-            var a = event.target && event.target.closest ? event.target.closest('a') : null;
-            if (!a) return;
-            var href = a.getAttribute('href') || '';
-            var isNav = href.indexOf('mode=') !== -1 || href.indexOf('fluid=') !== -1 ||
-                        href.indexOf('cycle=') !== -1 || href.indexOf('restart=') !== -1;
-            if (isNav && ckLastStep !== null) {
-                try {
-                    var url = new URL(doc.defaultView.location.href);
-                    url.search = '';
-                    url.searchParams.set('ckstep', ckLastStep);
-                    doc.defaultView.history.pushState({ ckstep: ckLastStep }, '', url.toString());
-                } catch (err) {}
-            }
-        }, true);
-
-        function ckExtractStep(event) {
-            if (event && event.state && event.state.ckstep) return event.state.ckstep;
-            var url = new URL(doc.defaultView.location.href);
-            return url.searchParams.get('ckstep');
-        }
-
-        doc.defaultView.addEventListener('popstate', function (event) {
-            var targetStep = ckExtractStep(event);
-            if (targetStep && targetStep !== ckLastStep) {
-                ckSkipCount = 0;
-                ckSyncing = true;
-                ckLastStep = targetStep;
-                var syncBtn = doc.querySelector('.st-key-ck_history_sync_wrap button');
-                if (syncBtn) {
-                    syncBtn.click();
-                }
-                setTimeout(function () { ckSyncing = false; }, 800);
-                return;
-            }
-            if (!targetStep && ckSkipCount < 6) {
-                ckSkipCount++;
-                doc.defaultView.history.back();
-            }
-        });
     })();
     </script>
     """,
@@ -762,19 +689,7 @@ if "restart" in _qp:
     st.session_state.wizard_cycle_type = None
     st.query_params.clear()
     st.rerun()
-if "backto" in _qp:
-    _req_backto = _qp["backto"]
-    if _req_backto in ("welcome", "fluid", "cycle_type"):
-        st.session_state.wizard_step = _req_backto
-    st.query_params.clear()
-    st.rerun()
 st.session_state.app_view = st.session_state.wizard_mode or "home"
-with st.container(key="ck_history_sync_wrap"):
-    if st.button("", key="ck_history_sync", help=""):
-        _target_step = st.query_params.get("ckstep")
-        if _target_step in ("welcome", "fluid", "cycle_type", "workspace"):
-            st.session_state.wizard_step = _target_step
-        st.rerun()
 def _go(view_name):
     st.session_state.wizard_mode = view_name
     if view_name == "cycles":
@@ -784,7 +699,6 @@ def _go(view_name):
         st.session_state.wizard_step = "fluid"
 def render_cycle_type_select():
     render_header("Choose Cycle Type")
-    st.markdown(f'<a class="ck-back-link" href="?backto=welcome&{_theme_qs()}" target="_self">&larr; Back</a>', unsafe_allow_html=True)
     st.markdown("### Which power cycle do you want to analyze?")
     st.caption("Each cycle uses a fixed working fluid, so you'll go straight to inputs after this.")
     cc1, cc2 = st.container(key="iconrow_cycle").columns(2, gap="small")
@@ -853,7 +767,6 @@ def render_welcome():
     render_footer()
 def render_fluid_select():
     render_header("Choose Working Fluid")
-    st.markdown(f'<a class="ck-back-link" href="?backto=welcome&{_theme_qs()}" target="_self">&larr; Back</a>', unsafe_allow_html=True)
     st.markdown('<h2 class="ck-list-heading">Select a working fluid</h2>', unsafe_allow_html=True)
     st.markdown(
         '<p class="ck-list-subtext">Selected fluid applies to all further calculations</p>',
@@ -903,9 +816,15 @@ def render_fluid_select():
     render_footer()
 def render_header(active_label):    
     step = st.session_state.wizard_step
-    st.markdown(f'<div id="ck-step-marker" data-step="{step}" style="display:none"></div>', unsafe_allow_html=True)
+    wsteps = get_wizard_steps()
+    idx = wsteps.index(step) if step in wsteps else 0
     with st.container(key="topnav"):        
-        c_brand, c_burger = st.columns([7.4, 1.8])
+        c_prev, c_brand, c_burger = st.columns([1.8, 4.8, 1.8])
+        with c_prev:
+            can_prev = idx > 0
+            if st.button("◀", key="wiz_prev_top", disabled=not can_prev, help="Previous"):
+                st.session_state.wizard_step = wsteps[idx - 1]
+                st.rerun()
         with c_brand:
             _active_html = ''
             st.markdown(
@@ -2305,13 +2224,11 @@ def _render_power_cycle_analysis_body():
             st.error(f"Could not solve the Brayton cycle: {e}")
 if st.session_state.app_view == "cycles":
     render_topbar("Power Cycle Lab")
-    st.markdown(f'<a class="ck-back-link" href="?backto=cycle_type&{_theme_qs()}" target="_self">&larr; Back</a>', unsafe_allow_html=True)
     render_power_cycle_analysis()
     render_footer()
     st.stop()
 
 render_topbar("Fluid Property Explorer")
-st.markdown(f'<a class="ck-back-link" href="?backto=fluid&{_theme_qs()}" target="_self">&larr; Back</a>', unsafe_allow_html=True)
 
 try:
     _tcrit_c = PropsSI('Tcrit', fluid) - 273.15
