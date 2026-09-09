@@ -148,9 +148,9 @@ components.html(
                 btn.innerHTML = '⛶';
                 btn.title = 'Toggle fullscreen';
                 btn.style.cssText =
-                    'position:absolute;top:6px;right:6px;z-index:50;' +
+                    'position:absolute;top:2px;right:6px;z-index:50;' +
                     'width:30px;height:30px;border-radius:8px;' +
-                    'border:1px solid rgba(120,110,95,0.3);' +
+                    'border:1px solid transparent;' +
                     'background:rgba(255,253,248,0.85);color:#5c5346;font-size:16px;' +
                     'cursor:pointer;line-height:1;';
                 btn.addEventListener('click', function (e) {
@@ -170,6 +170,45 @@ components.html(
         }
         addFullscreenButtons();
         setInterval(addFullscreenButtons, 1000);
+
+        var ckLastStep = null;
+        var ckSyncing = false;
+        function syncHistory() {
+            var marker = doc.getElementById('ck-step-marker');
+            if (!marker) return;
+            var step = marker.getAttribute('data-step');
+            if (!step || ckSyncing) return;
+            if (ckLastStep === null) {
+                ckLastStep = step;
+                var url = new URL(doc.defaultView.location.href);
+                url.searchParams.set('ckstep', step);
+                doc.defaultView.history.replaceState({ ckstep: step }, '', url.toString());
+                return;
+            }
+            if (step !== ckLastStep) {
+                ckLastStep = step;
+                var url2 = new URL(doc.defaultView.location.href);
+                url2.searchParams.set('ckstep', step);
+                doc.defaultView.history.pushState({ ckstep: step }, '', url2.toString());
+            }
+        }
+        setInterval(syncHistory, 400);
+
+        doc.defaultView.addEventListener('popstate', function (event) {
+            var targetStep = event.state && event.state.ckstep;
+            if (!targetStep) {
+                var url = new URL(doc.defaultView.location.href);
+                targetStep = url.searchParams.get('ckstep');
+            }
+            if (!targetStep || targetStep === ckLastStep) return;
+            ckSyncing = true;
+            ckLastStep = targetStep;
+            var syncBtn = doc.querySelector('.st-key-ck_history_sync_wrap button');
+            if (syncBtn) {
+                syncBtn.click();
+            }
+            setTimeout(function () { ckSyncing = false; }, 800);
+        });
     })();
     </script>
     """,
@@ -616,6 +655,7 @@ if _sidebar_open:
         ' visibility: visible !important; pointer-events: auto !important; }'
         ' .st-key-sidebar_backdrop { display: block !important; }'
         ' .st-key-burger_toggle { visibility: hidden !important; pointer-events: none !important; }'
+        ' body { overflow: hidden !important; }'
         ' </style>',
         unsafe_allow_html=True
     )
@@ -629,6 +669,7 @@ else:
         ' .st-key-burger_toggle { visibility: visible !important; pointer-events: auto !important; }'
         ' </style>',
         unsafe_allow_html=True
+
     )
 if st.button("Close menu", key="sidebar_backdrop", help="Close menu"):
     st.session_state.sidebar_open = False
@@ -688,6 +729,12 @@ if "restart" in _qp:
     st.query_params.clear()
     st.rerun()
 st.session_state.app_view = st.session_state.wizard_mode or "home"
+with st.container(key="ck_history_sync_wrap"):
+    if st.button("", key="ck_history_sync", help=""):
+        _target_step = st.query_params.get("ckstep")
+        if _target_step in ("welcome", "fluid", "cycle_type", "workspace"):
+            st.session_state.wizard_step = _target_step
+        st.rerun()
 def _go(view_name):
     st.session_state.wizard_mode = view_name
     if view_name == "cycles":
@@ -814,15 +861,9 @@ def render_fluid_select():
     render_footer()
 def render_header(active_label):    
     step = st.session_state.wizard_step
-    wsteps = get_wizard_steps()
-    idx = wsteps.index(step) if step in wsteps else 0
+    st.markdown(f'<div id="ck-step-marker" data-step="{step}" style="display:none"></div>', unsafe_allow_html=True)
     with st.container(key="topnav"):        
-        c_prev, c_brand, c_burger = st.columns([1.8, 4.8, 1.8])
-        with c_prev:
-            can_prev = idx > 0
-            if st.button("◀", key="wiz_prev_top", disabled=not can_prev, help="Previous"):
-                st.session_state.wizard_step = wsteps[idx - 1]
-                st.rerun()
+        c_brand, c_burger = st.columns([7.4, 1.8])
         with c_brand:
             _active_html = ''
             st.markdown(
