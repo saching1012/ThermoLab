@@ -137,50 +137,23 @@ components.html(
         setInterval(updateThumb, 1500);
 
         // ---- 2. Per-chart fullscreen button ----
-        function addChartToolbar() {
+        function addFullscreenButtons() {
             var charts = doc.querySelectorAll('[data-testid="stPlotlyChart"]');
             charts.forEach(function (chart) {
                 if (chart.dataset.ckFsWired) return;
                 chart.dataset.ckFsWired = '1';
                 var cs = doc.defaultView.getComputedStyle(chart);
                 if (cs.position === 'static') chart.style.position = 'relative';
-
-                var gd = chart.querySelector('.js-plotly-plot') || chart;
-
-                var wrap = doc.createElement('div');
-                wrap.style.cssText =
-                    'position:absolute;top:8px;right:8px;z-index:50;' +
-                    'display:flex;border-radius:10px;overflow:hidden;' +
-                    'border:1px solid rgba(180,83,9,0.35);' +
-                    'background:rgba(255,253,248,0.95);' +
-                    'box-shadow:0 2px 6px rgba(0,0,0,0.12);';
-
-                var scaleBtn = doc.createElement('button');
-                scaleBtn.innerHTML = '⤢';
-                scaleBtn.title = 'Autoscale';
-                scaleBtn.style.cssText =
-                    'width:32px;height:32px;border:none;' +
-                    'border-right:1px solid rgba(180,83,9,0.3);' +
-                    'background:transparent;color:#b45309;font-size:15px;' +
+                var btn = doc.createElement('button');
+                btn.innerHTML = '⛶';
+                btn.title = 'Toggle fullscreen';
+                btn.style.cssText =
+                    'position:absolute;top:6px;right:6px;z-index:50;' +
+                    'width:30px;height:30px;border-radius:8px;' +
+                    'border:1px solid rgba(120,110,95,0.3);' +
+                    'background:rgba(255,253,248,0.85);color:#5c5346;font-size:16px;' +
                     'cursor:pointer;line-height:1;';
-                scaleBtn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    if (doc.defaultView.Plotly) {
-                        doc.defaultView.Plotly.relayout(gd, {
-                            'xaxis.autorange': true,
-                            'yaxis.autorange': true
-                        });
-                    }
-                });
-
-                var fsBtn = doc.createElement('button');
-                fsBtn.innerHTML = '⛶';
-                fsBtn.title = 'Toggle fullscreen';
-                fsBtn.style.cssText =
-                    'width:32px;height:32px;border:none;' +
-                    'background:transparent;color:#b45309;font-size:16px;' +
-                    'cursor:pointer;line-height:1;';
-                fsBtn.addEventListener('click', function (e) {
+                btn.addEventListener('click', function (e) {
                     e.stopPropagation();
                     if (doc.fullscreenElement === chart) {
                         doc.exitFullscreen();
@@ -192,14 +165,11 @@ components.html(
                         chart.classList.toggle('ck-chart-fullscreen');
                     }
                 });
-
-                wrap.appendChild(scaleBtn);
-                wrap.appendChild(fsBtn);
-                chart.appendChild(wrap);
+                chart.appendChild(btn);
             });
         }
-        addChartToolbar();
-        setInterval(addChartToolbar, 1000);
+        addFullscreenButtons();
+        setInterval(addFullscreenButtons, 1000);
     })();
     </script>
     """,
@@ -1116,11 +1086,15 @@ def generate_dome(fluid):
     return data
 dome = generate_dome(fluid)
 plot_config = {
-    'displayModeBar': False,
+    'displayModeBar': True,
     'responsive': True,
     'scrollZoom': True,
     'doubleClick': 'reset+autosize',
     'displaylogo': False,
+    'modeBarButtonsToRemove': [
+        'toImage', 'zoom2d', 'pan2d', 'select2d', 'lasso2d',
+        'zoomIn2d', 'zoomOut2d', 'resetScale2d',
+    ],
 }
 layout_common = dict(
     template='plotly_dark' if _is_dark() else 'plotly_white',
