@@ -762,6 +762,12 @@ if "restart" in _qp:
     st.session_state.wizard_cycle_type = None
     st.query_params.clear()
     st.rerun()
+if "backto" in _qp:
+    _req_backto = _qp["backto"]
+    if _req_backto in ("welcome", "fluid", "cycle_type"):
+        st.session_state.wizard_step = _req_backto
+    st.query_params.clear()
+    st.rerun()
 st.session_state.app_view = st.session_state.wizard_mode or "home"
 with st.container(key="ck_history_sync_wrap"):
     if st.button("", key="ck_history_sync", help=""):
@@ -778,6 +784,7 @@ def _go(view_name):
         st.session_state.wizard_step = "fluid"
 def render_cycle_type_select():
     render_header("Choose Cycle Type")
+    st.markdown(f'<a class="ck-back-link" href="?backto=welcome&{_theme_qs()}" target="_self">&larr; Back</a>', unsafe_allow_html=True)
     st.markdown("### Which power cycle do you want to analyze?")
     st.caption("Each cycle uses a fixed working fluid, so you'll go straight to inputs after this.")
     cc1, cc2 = st.container(key="iconrow_cycle").columns(2, gap="small")
@@ -846,6 +853,7 @@ def render_welcome():
     render_footer()
 def render_fluid_select():
     render_header("Choose Working Fluid")
+    st.markdown(f'<a class="ck-back-link" href="?backto=welcome&{_theme_qs()}" target="_self">&larr; Back</a>', unsafe_allow_html=True)
     st.markdown('<h2 class="ck-list-heading">Select a working fluid</h2>', unsafe_allow_html=True)
     st.markdown(
         '<p class="ck-list-subtext">Selected fluid applies to all further calculations</p>',
@@ -2297,11 +2305,13 @@ def _render_power_cycle_analysis_body():
             st.error(f"Could not solve the Brayton cycle: {e}")
 if st.session_state.app_view == "cycles":
     render_topbar("Power Cycle Lab")
+    st.markdown(f'<a class="ck-back-link" href="?backto=cycle_type&{_theme_qs()}" target="_self">&larr; Back</a>', unsafe_allow_html=True)
     render_power_cycle_analysis()
     render_footer()
     st.stop()
 
 render_topbar("Fluid Property Explorer")
+st.markdown(f'<a class="ck-back-link" href="?backto=fluid&{_theme_qs()}" target="_self">&larr; Back</a>', unsafe_allow_html=True)
 
 try:
     _tcrit_c = PropsSI('Tcrit', fluid) - 273.15
