@@ -173,6 +173,7 @@ components.html(
 
         var ckLastStep = null;
         var ckSyncing = false;
+        var ckSkipCount = 0;
         function syncHistory() {
             var marker = doc.getElementById('ck-step-marker');
             if (!marker) return;
@@ -187,6 +188,7 @@ components.html(
             }
             if (step !== ckLastStep) {
                 ckLastStep = step;
+                ckSkipCount = 0;
                 var url2 = new URL(doc.defaultView.location.href);
                 url2.searchParams.set('ckstep', step);
                 doc.defaultView.history.pushState({ ckstep: step }, '', url2.toString());
@@ -194,20 +196,29 @@ components.html(
         }
         setInterval(syncHistory, 400);
 
+        function ckExtractStep(event) {
+            if (event && event.state && event.state.ckstep) return event.state.ckstep;
+            var url = new URL(doc.defaultView.location.href);
+            return url.searchParams.get('ckstep');
+        }
+
         doc.defaultView.addEventListener('popstate', function (event) {
-            var targetStep = event.state && event.state.ckstep;
-            if (!targetStep) {
-                var url = new URL(doc.defaultView.location.href);
-                targetStep = url.searchParams.get('ckstep');
+            var targetStep = ckExtractStep(event);
+            if (targetStep && targetStep !== ckLastStep) {
+                ckSkipCount = 0;
+                ckSyncing = true;
+                ckLastStep = targetStep;
+                var syncBtn = doc.querySelector('.st-key-ck_history_sync_wrap button');
+                if (syncBtn) {
+                    syncBtn.click();
+                }
+                setTimeout(function () { ckSyncing = false; }, 800);
+                return;
             }
-            if (!targetStep || targetStep === ckLastStep) return;
-            ckSyncing = true;
-            ckLastStep = targetStep;
-            var syncBtn = doc.querySelector('.st-key-ck_history_sync_wrap button');
-            if (syncBtn) {
-                syncBtn.click();
+            if (!targetStep && ckSkipCount < 6) {
+                ckSkipCount++;
+                doc.defaultView.history.back();
             }
-            setTimeout(function () { ckSyncing = false; }, 800);
         });
     })();
     </script>
