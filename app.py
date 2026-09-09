@@ -174,27 +174,50 @@ components.html(
         var ckLastStep = null;
         var ckSyncing = false;
         var ckSkipCount = 0;
-        function syncHistory() {
+
+        function ckInitBaseline() {
             var marker = doc.getElementById('ck-step-marker');
             if (!marker) return;
             var step = marker.getAttribute('data-step');
-            if (!step || ckSyncing) return;
-            if (ckLastStep === null) {
-                ckLastStep = step;
+            if (!step || ckLastStep !== null) return;
+            ckLastStep = step;
+            try {
                 var url = new URL(doc.defaultView.location.href);
                 url.searchParams.set('ckstep', step);
                 doc.defaultView.history.replaceState({ ckstep: step }, '', url.toString());
+            } catch (err) {}
+        }
+        ckInitBaseline();
+        setInterval(function () {
+            if (ckSyncing) return;
+            if (ckLastStep === null) {
+                ckInitBaseline();
                 return;
             }
-            if (step !== ckLastStep) {
+            var marker = doc.getElementById('ck-step-marker');
+            if (!marker) return;
+            var step = marker.getAttribute('data-step');
+            if (step && step !== ckLastStep) {
                 ckLastStep = step;
                 ckSkipCount = 0;
-                var url2 = new URL(doc.defaultView.location.href);
-                url2.searchParams.set('ckstep', step);
-                doc.defaultView.history.pushState({ ckstep: step }, '', url2.toString());
             }
-        }
-        setInterval(syncHistory, 400);
+        }, 400);
+
+        doc.addEventListener('click', function (event) {
+            var a = event.target && event.target.closest ? event.target.closest('a') : null;
+            if (!a) return;
+            var href = a.getAttribute('href') || '';
+            var isNav = href.indexOf('mode=') !== -1 || href.indexOf('fluid=') !== -1 ||
+                        href.indexOf('cycle=') !== -1 || href.indexOf('restart=') !== -1;
+            if (isNav && ckLastStep !== null) {
+                try {
+                    var url = new URL(doc.defaultView.location.href);
+                    url.search = '';
+                    url.searchParams.set('ckstep', ckLastStep);
+                    doc.defaultView.history.pushState({ ckstep: ckLastStep }, '', url.toString());
+                } catch (err) {}
+            }
+        }, true);
 
         function ckExtractStep(event) {
             if (event && event.state && event.state.ckstep) return event.state.ckstep;
