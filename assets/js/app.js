@@ -29,23 +29,6 @@
                 will-change: transform;
                 backface-visibility: hidden;
                 -webkit-backface-visibility: hidden;
-                transform: translateX(100%) !important;
-                pointer-events: none !important;
-                transition: none !important;
-                animation: none !important;
-            }
-
-            div[data-testid="stSidebarUserContent"] {
-                visibility: hidden;
-            }
-
-            .st-key-sidebar_backdrop {
-                display: none !important;
-            }
-
-            .st-key-burger_toggle {
-                visibility: visible !important;
-                pointer-events: auto !important;
             }
         `;
 
