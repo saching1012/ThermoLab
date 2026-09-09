@@ -1071,7 +1071,7 @@ div.stMarkdown:has(> .ck-home-subtext) {
 }
 
 .modebar-container {
-    top: 6px !important;
+    top: 2px !important;
     right: 6px !important;
 }
 .modebar-group {
@@ -1085,4 +1085,16 @@ div.stMarkdown:has(> .ck-home-subtext) {
 }
 .modebar-btn:hover {
     background: rgba(120, 110, 95, 0.12) !important;
+}
+
+.st-key-ck_history_sync_wrap {
+    position: fixed !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+}
+#ck-step-marker {
+    display: none !important;
 }
