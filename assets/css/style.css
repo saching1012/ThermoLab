@@ -1098,3 +1098,18 @@ div.stMarkdown:has(> .ck-home-subtext) {
 #ck-step-marker {
     display: none !important;
 }
+
+.ck-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #b45309 !important;
+    text-decoration: none !important;
+    margin: 16px 0 4px 0;
+    padding: 4px 0;
+}
+.ck-back-link:active {
+    opacity: 0.6;
+}
