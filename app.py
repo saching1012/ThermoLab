@@ -20,7 +20,6 @@ CYCLE_IMG_PATH = "static/cycle.jpg"
 ASSET_CSS_DIR = "assets/css"
 ASSET_JS_DIR = "assets/js"
 
-
 @functools.lru_cache(maxsize=16)
 def _img_data_uri(path):
     """Read a local image file and return it as a base64 data URI. Returns
@@ -36,7 +35,6 @@ def _img_data_uri(path):
     except Exception:
         return ""
 
-
 @functools.lru_cache(maxsize=8)
 def _read_text_asset(path):
     """Read an external CSS/JS asset file as plain text. Returns an empty
@@ -47,7 +45,6 @@ def _read_text_asset(path):
             return f.read()
     except Exception:
         return ""
-
 
 def _logo_img_html(css_class):
     """Build the brand <img> tag, or an empty string if the logo asset
@@ -61,7 +58,6 @@ def _logo_img_html(css_class):
         return ""
     return f'<img class="{css_class}" src="{uri}" alt="logo" />'
 
-
 _page_icon = LOGO_ICON_PATH if os.path.exists(LOGO_ICON_PATH) else "🧪"
 st.set_page_config(
     page_title=APP_NAME,
@@ -74,25 +70,6 @@ _app_js = _read_text_asset(f"{ASSET_JS_DIR}/app.js")
 if _app_js:
     components.html(f"<script>{_app_js}</script>", height=0, width=0)
 
-# ---------------------------------------------------------------------
-# Guaranteed-inline JS (ships inside app.py, not a separate file that can
-# go missing on upload). Two independent jobs:
-#
-# 1. A real, always-there scroll indicator. Plain CSS scrollbar styling
-#    (::-webkit-scrollbar) is a desktop-browser feature — stock Android
-#    Chrome/WebView ignores it entirely for normal page scrolling, no
-#    matter how it's written, which is why no amount of CSS ever made one
-#    appear. This instead draws a small pill on the right edge with a
-#    plain positioned <div>, sized/positioned from real scroll metrics on
-#    every scroll event — that works on any browser, since it isn't
-#    asking the browser to themes something it won't.
-#
-# 2. A floating fullscreen (⛶) button on every Plotly chart. Plotly.js
-#    has no built-in fullscreen modebar button, and a custom modebar
-#    button with a real JS click handler can't be sent through
-#    st.plotly_chart's plain JSON config — so this adds one directly to
-#    each chart's container via the Fullscreen API instead.
-# ---------------------------------------------------------------------
 components.html(
     """
     <script>
@@ -160,23 +137,50 @@ components.html(
         setInterval(updateThumb, 1500);
 
         // ---- 2. Per-chart fullscreen button ----
-        function addFullscreenButtons() {
+        function addChartToolbar() {
             var charts = doc.querySelectorAll('[data-testid="stPlotlyChart"]');
             charts.forEach(function (chart) {
                 if (chart.dataset.ckFsWired) return;
                 chart.dataset.ckFsWired = '1';
                 var cs = doc.defaultView.getComputedStyle(chart);
                 if (cs.position === 'static') chart.style.position = 'relative';
-                var btn = doc.createElement('button');
-                btn.innerHTML = '⛶';
-                btn.title = 'Toggle fullscreen';
-                btn.style.cssText =
-                    'position:absolute;top:8px;right:46px;z-index:50;' +
-                    'width:32px;height:32px;border-radius:10px;' +
+
+                var gd = chart.querySelector('.js-plotly-plot') || chart;
+
+                var wrap = doc.createElement('div');
+                wrap.style.cssText =
+                    'position:absolute;top:8px;right:8px;z-index:50;' +
+                    'display:flex;border-radius:10px;overflow:hidden;' +
                     'border:1px solid rgba(180,83,9,0.35);' +
-                    'background:rgba(255,253,248,0.95);color:#b45309;font-size:16px;' +
-                    'cursor:pointer;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.12);';
-                btn.addEventListener('click', function (e) {
+                    'background:rgba(255,253,248,0.95);' +
+                    'box-shadow:0 2px 6px rgba(0,0,0,0.12);';
+
+                var scaleBtn = doc.createElement('button');
+                scaleBtn.innerHTML = '⤢';
+                scaleBtn.title = 'Autoscale';
+                scaleBtn.style.cssText =
+                    'width:32px;height:32px;border:none;' +
+                    'border-right:1px solid rgba(180,83,9,0.3);' +
+                    'background:transparent;color:#b45309;font-size:15px;' +
+                    'cursor:pointer;line-height:1;';
+                scaleBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    if (doc.defaultView.Plotly) {
+                        doc.defaultView.Plotly.relayout(gd, {
+                            'xaxis.autorange': true,
+                            'yaxis.autorange': true
+                        });
+                    }
+                });
+
+                var fsBtn = doc.createElement('button');
+                fsBtn.innerHTML = '⛶';
+                fsBtn.title = 'Toggle fullscreen';
+                fsBtn.style.cssText =
+                    'width:32px;height:32px;border:none;' +
+                    'background:transparent;color:#b45309;font-size:16px;' +
+                    'cursor:pointer;line-height:1;';
+                fsBtn.addEventListener('click', function (e) {
                     e.stopPropagation();
                     if (doc.fullscreenElement === chart) {
                         doc.exitFullscreen();
@@ -188,18 +192,20 @@ components.html(
                         chart.classList.toggle('ck-chart-fullscreen');
                     }
                 });
-                chart.appendChild(btn);
+
+                wrap.appendChild(scaleBtn);
+                wrap.appendChild(fsBtn);
+                chart.appendChild(wrap);
             });
         }
-        addFullscreenButtons();
-        setInterval(addFullscreenButtons, 1000);
+        addChartToolbar();
+        setInterval(addChartToolbar, 1000);
     })();
     </script>
     """,
     height=0,
     width=0,
 )
-
 
 def is_valid_number(value):
 
@@ -235,7 +241,6 @@ fluid_limits = {
         "P_min": 0.1,
         "P_max": 500.0,
 
-        
         "T_min": -120.0,
         "T_max": 300.0,
 
@@ -320,7 +325,6 @@ def safe_props(output, i1, v1, i2, v2, fluid):
 
     except Exception:
         return np.nan
-    
 
 @functools.lru_cache(maxsize=200000)
 def cached_props(output, i1, v1, i2, v2, fluid):
@@ -330,7 +334,6 @@ def cached_props(output, i1, v1, i2, v2, fluid):
 
     except:
         return np.nan
-
 
 @functools.lru_cache(maxsize=200000)
 def cached_propsi(output, i1, v1, i2, v2, fluid):
@@ -378,14 +381,11 @@ def build_isobar_path(P, T_start, T_end, fluid_name, n_seg=60):
         for T_k in np.linspace(T_start, Tsat_, n_liq + 1)[1:-1]:
             add_PT(T_k)
 
-        
-        
         add_PQ(0.0)
         n_mix = max(int(n_seg * 0.30), 16)
         for Q in np.linspace(0.0, 1.0, n_mix + 1)[1:]:
             add_PQ(float(Q))
 
-        
         if T_end > Tsat_:
             n_vap = max(int(n_seg * 0.35), 12)
             for T_k in np.linspace(Tsat_, T_end, n_vap + 1)[1:-1]:
@@ -483,7 +483,6 @@ UNIT_DEFS = {
 
 _T_UNITS = ["°C", "K", "°F", "°R"]
 
-
 def _t_to_c(value, unit):
     if unit == "°C":
         return value
@@ -494,7 +493,6 @@ def _t_to_c(value, unit):
     if unit == "°R":
         return value * 5.0 / 9.0 - 273.15
     return value
-
 
 def _c_to_t(value_c, unit):
     if unit == "°C":
@@ -507,13 +505,11 @@ def _c_to_t(value_c, unit):
         return (value_c + 273.15) * 9.0 / 5.0
     return value_c
 
-
 def _to_canonical(value, unit, kind):
     
     if kind == "T":
         return _t_to_c(value, unit)
     return value * UNIT_DEFS[kind]["factors"][unit]
-
 
 def _from_canonical(value_canon, unit, kind):
     
@@ -521,12 +517,10 @@ def _from_canonical(value_canon, unit, kind):
         return _c_to_t(value_canon, unit)
     return value_canon / UNIT_DEFS[kind]["factors"][unit]
 
-
 def disp_unit(kind):
     
     canonical_unit = "°C" if kind == "T" else UNIT_DEFS[kind]["canonical"]
     return st.session_state.get(f"disp_unit_{kind}", canonical_unit)
-
 
 def fmt_canon(value_canon, kind, decimals=None):
     
@@ -552,7 +546,6 @@ def conv(value, kind):
     except Exception:
         return value
 
-
 def tc():
     
     if _is_dark():
@@ -575,12 +568,6 @@ def tc():
         )
 def show_state_table(data):
     if isinstance(data, pd.DataFrame):
-        # Every column here mixes fmt()-rounded numbers with plain-text
-        # labels (phase names, "N/A", "—") — pandas ends up with an
-        # 'object' dtype pyarrow can't reliably infer, which otherwise
-        # surfaces as a silent ArrowInvalid recovery (and a noisy log)
-        # every time one of these tables renders. Stringify for display;
-        # nothing downstream needs these as numeric dtypes.
         data = data.astype(str)
     styled = data.style if isinstance(data, pd.DataFrame) else data
     try:
@@ -589,9 +576,7 @@ def show_state_table(data):
         styled = styled.hide_index()  
     st.table(styled)
 
-
 _RENDERED_UNIT_DROPDOWNS = set()  
-
 
 def unit_number_input(label, kind, min_value, max_value, value, step, key, help=None, format=None):
     
@@ -642,14 +627,6 @@ def unit_number_input(label, kind, min_value, max_value, value, step, key, help=
 
     return _to_canonical(entered, chosen_unit, kind)
 
-# ---------------------------------------------------------------------
-# Theme — the app is always light mode now. Dark mode, the system-theme
-# follow logic, and the sidebar toggle have been removed; _is_dark() is
-# kept (always returning False) purely so the many existing
-# `... if _is_dark() else ...` color/style branches elsewhere in this
-# file don't all need to be hunted down and rewritten — they now simply
-# always take their light-mode branch.
-# ---------------------------------------------------------------------
 st.session_state.app_theme = "light"
 def _is_dark():
     return False
@@ -658,30 +635,10 @@ def _theme_qs():
 _LIGHT_CSS = _read_text_asset(f"{ASSET_CSS_DIR}/theme_light.css")
 st.markdown(f"<style>{_LIGHT_CSS}</style>", unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------
-# style.css — the single consolidated stylesheet for everything that
-# isn't theme coloring: Streamlit-chrome cleanup, responsive breakpoints,
-# the dash-card-v2 cards, the sticky app bar / sidebar, and the mobile
-# home screen (app bar sizing, heading/subtext, single-column Fluids/
-# Cycle cards). Previously split across base_reset.css / responsive.css
-# / extra.css plus two large CSS strings inline in this file — merged
-# into assets/css/style.css so every style rule lives in one place, in
-# its own file, instead of inside app.py. Loaded after the theme file so
-# it wins the cascade for layout while the theme file still owns colors.
-# ---------------------------------------------------------------------
 _STYLE_CSS = _read_text_asset(f"{ASSET_CSS_DIR}/style.css")
 st.markdown(f"<style>{_STYLE_CSS}</style>", unsafe_allow_html=True)
 
-# Splash screen removed — the app now opens straight to the home screen.
-
 _sidebar_open = st.session_state.get("sidebar_open", False)
-# NOTE: the "Close menu" button below is now ALWAYS rendered (same key,
-# same position, every rerun) instead of being conditionally shown/hidden
-# by an if/else branch. Toggling that button's presence in the tree used
-# to shift the auto-generated identity of every unkeyed element rendered
-# after it (including the plotly charts further down the page), which is
-# what caused charts to flicker/disappear whenever the hamburger menu was
-# opened or closed. Visibility is now handled purely with CSS.
 if _sidebar_open:
     st.markdown(
         '<style>section[data-testid="stSidebar"] {'
@@ -720,7 +677,6 @@ def get_wizard_steps():
     if st.session_state.wizard_mode == "cycles":
         return ["welcome", "cycle_type", "workspace"]
     return ["welcome", "fluid", "workspace"]
-
 
 def get_wizard_labels():
     if st.session_state.wizard_mode == "cycles":
@@ -795,11 +751,7 @@ def render_cycle_type_select():
     render_footer()
 def render_welcome():
     render_header("")
-    # Heading + subtext ("What do you want to work on? / Choose a topic
-    # to start learning.") removed per product decision — the cards
-    # speak for themselves.
 
-    # Photos (base64 data URIs) and per-theme colors used in the card HTML
     _fluid_photo = _img_data_uri(FLUID_IMG_PATH)
     _cycle_photo = _img_data_uri(CYCLE_IMG_PATH)
     _card_bg = "#1d160f" if _is_dark() else "#fffdf8"
@@ -807,18 +759,6 @@ def render_welcome():
     _card_title_c = "#f2f6fa" if _is_dark() else "#17120a"
     _card_sub_c = "#b3a690" if _is_dark() else "#5c4f3d"
 
-    # NOTE: both cards are emitted from a SINGLE st.markdown() call (rather
-    # than one call per card). Separate calls would mean each card is the
-    # only child of its own Streamlit wrapper div — real DOM siblings only
-    # as far as Streamlit's own internal container structure, which changes
-    # between versions and makes CSS spacing between them unreliable to
-    # target. Emitting one HTML string makes them true, guaranteed adjacent
-    # siblings in the actual DOM, so plain CSS sibling selectors work
-    # regardless of whatever Streamlit wraps around the outside.
-    #
-    # NOTE: the card itself is a plain, non-clickable <div> now — only the
-    # "Explore" button inside it is a link. Previously the whole card was
-    # wrapped in an <a>, so tapping anywhere on it navigated away.
     with st.container(key="iconrow_welcome"):
         st.markdown(
             f"""
@@ -852,7 +792,6 @@ def render_welcome():
             unsafe_allow_html=True,
         )
 
-
     render_footer()
 def render_fluid_select():
     render_header("Choose Working Fluid")
@@ -862,10 +801,6 @@ def render_fluid_select():
         unsafe_allow_html=True,
     )
 
-    # Circle background color per fluid — purely decorative, just to give
-    # each row a distinct identity at a glance the way the reference
-    # design does. Doesn't affect fluid_map, CoolProp lookups, or
-    # anything else functional.
     fluid_icons = {"Water": "💧", "CO₂": "☁️", "Ammonia": "🧪", "R134a": "❄️", "Air": "💨"}
     fluid_icon_bg = {
         "Water": "#dbeafe", "CO₂": "#e5e7eb", "Ammonia": "#dcfce7",
@@ -912,21 +847,6 @@ def render_header(active_label):
     wsteps = get_wizard_steps()
     idx = wsteps.index(step) if step in wsteps else 0
     with st.container(key="topnav"):        
-        # Wider side columns than before (was [0.55, 7.0, 0.55]) — the old
-        # ratio gave the prev/burger buttons only ~7% of the row's width
-        # each, which at real phone widths is narrower than the buttons
-        # themselves, so the browser was flex-shrinking them back down no
-        # matter what size we set in CSS. This gives each button column
-        # enough room to actually render at full size.
-        # Widened again (was [1.3, 5.4, 1.3]) — that ratio was sized for
-        # a smaller button (48-54px). The prev/hamburger buttons have
-        # since grown to 62px across a couple of follow-up size
-        # increases, but this ratio was never revisited alongside them,
-        # so at real phone widths each side column ended up narrower
-        # than the button it needs to hold — the button (which can't
-        # shrink, flex-shrink:0) then overflowed into the brand column's
-        # space, which is what was squeezing "Curious Kelvin" down to
-        # "Curiou...". This ratio actually fits the current 62px buttons.
         c_prev, c_brand, c_burger = st.columns([1.8, 4.8, 1.8])
         with c_prev:
             can_prev = idx > 0
@@ -934,13 +854,6 @@ def render_header(active_label):
                 st.session_state.wizard_step = wsteps[idx - 1]
                 st.rerun()
         with c_brand:
-            # active_label is intentionally ignored now — the nav bar
-            # should look identical (logo + app name only) on every
-            # screen, matching the home page, instead of picking up a
-            # per-page label like "Choose Working Fluid" underneath the
-            # name. Left as a no-op here (rather than removing the
-            # parameter and updating every render_header(...) call site)
-            # so nothing else has to change.
             _active_html = ''
             st.markdown(
                 '<div class="app-header"><div class="brand">'
@@ -955,9 +868,6 @@ def render_header(active_label):
 def render_topbar(active_label):
     render_header(active_label)
 def render_footer():
-    # Footer removed from every page per product decision — kept as a
-    # no-op (instead of deleting every call site) so nothing else needs
-    # to change.
     return
 def render_nav_sidebar():
     step = st.session_state.wizard_step
@@ -1206,61 +1116,27 @@ def generate_dome(fluid):
     return data
 dome = generate_dome(fluid)
 plot_config = {
-    # Autoscale (+ the custom fullscreen ⛶ button injected on each chart
-    # separately) is all that's left in the modebar now — Pan is removed
-    # per request, on top of the box-zoom/zoom-in/out/reset-axes/download
-    # buttons already dropped earlier.
-    'displayModeBar': True,
+    'displayModeBar': False,
     'responsive': True,
     'scrollZoom': True,
     'doubleClick': 'reset+autosize',
     'displaylogo': False,
-    'modeBarButtonsToRemove': [
-        'toImage', 'zoom2d', 'pan2d', 'select2d', 'lasso2d',
-        'zoomIn2d', 'zoomOut2d', 'resetScale2d',
-    ],
 }
 layout_common = dict(
     template='plotly_dark' if _is_dark() else 'plotly_white',
     height=600,  
     hovermode='closest',
-    # dragmode=False turned out to disable more than just single-finger
-    # drag/pan — Plotly's pinch-to-zoom touch handling is wired through the
-    # same drag-interaction layer, so setting it to False silently killed
-    # pinch-zoom too, which is why it stopped working after the pan button
-    # was removed. 'zoom' is Plotly's own default: a single-finger/mouse
-    # drag draws a rubber-band zoom box (it doesn't pan or reposition the
-    # chart), and — critically — it leaves that same interaction layer
-    # active, so two-finger pinch (scrollZoom, still on above) works again.
     dragmode='zoom',
-    # A finger is far less precise than a mouse pointer, so the default
-    # ~20px hover-detection radius is too tight for tap-to-see-tooltip on a
-    # phone — widen it so a tap near a curve/marker still registers.
     hoverdistance=40,
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
     font=dict(color=tc()['label_text'], size=12),
-    # Legend sits BELOW the plot area (not above) so it never collides
-    # with the chart's own title text at the top — that collision is
-    # exactly what was happening on the Reheat and Regenerative Rankine
-    # T-s diagrams, where a longer title plus a legend that wraps to 2-3
-    # rows (6 curve names on a narrow phone width) left no room between
-    # them. Centering it below, the same way layout_common_grid already
-    # did for the fluid-explorer charts, means it just wraps into as many
-    # centered rows as it needs under the plot instead.
     legend=dict(
         orientation='h',
         yanchor='top',
         y=-0.22,
         xanchor='center',
         x=0.5,
-        # Plotly's auto-wrapping for a horizontal legend fits items per
-        # row purely based on each entry's own text width — so "2→3
-        # Boiler (Constant P)" (T-s) and "2→3 Boiler" (P-h) wrap
-        # differently even though both charts have 6 legend entries.
-        # entrywidth/entrywidthmode pins every entry to exactly half the
-        # legend's width, forcing a real, consistent 2-per-row grid on
-        # every chart regardless of how long any one label happens to be.
         entrywidth=0.5,
         entrywidthmode='fraction',
         font=dict(size=10, color=tc()['label_text'])
@@ -1738,12 +1614,10 @@ def _render_power_cycle_analysis_body():
                     except Exception:
                         phase4h = "Superheated Vapor"
 
-                    
                     h_5h = cached_propsi('H', 'P', P_cond_h, 'Q', 0, fluid)
                     s_5h = cached_propsi('S', 'P', P_cond_h, 'Q', 0, fluid)
                     T_5h = cached_propsi('T', 'P', P_cond_h, 'Q', 0, fluid)
 
-                    
                     h_6sh = cached_propsi('H', 'P', P_boil_h, 'S', s_5h, fluid)
                     h_6h = h_5h + (h_6sh - h_5h) / rk_eta_pump
                     T_6h = cached_propsi('T', 'P', P_boil_h, 'H', h_6h, fluid)
@@ -1784,7 +1658,6 @@ def _render_power_cycle_analysis_body():
                         </div>
                         """, unsafe_allow_html=True)
 
-                    
                     fig_rh = go.Figure()
                     if dome is not None:
                         fig_rh.add_trace(go.Scatter(x=conv(np.array(dome['sf']),'S'), y=conv(np.array(dome['T']),'T'), mode='lines',
@@ -1814,8 +1687,7 @@ def _render_power_cycle_analysis_body():
                             if s_leg:
                                 s_leg = [conv(v, 'S') for v in s_leg]
                                 T_leg = [conv(v, 'T') for v in T_leg]
-                                
-                                
+
                                 s_leg[0], T_leg[0] = s0, T0
                                 s_leg[-1], T_leg[-1] = s1p, T1p
                                 fig_rh.add_trace(go.Scatter(x=s_leg, y=T_leg,
@@ -1868,10 +1740,8 @@ def _render_power_cycle_analysis_body():
                     T_main_r = rk_Tmain + 273.15
                     N = N_fwh
 
-                    
                     P_stages = [P_cond_r * (P_boil_r / P_cond_r) ** (k / (N + 1)) for k in range(1, N + 1)]
 
-                    
                     Tsat_in = cached_propsi('T', 'P', P_boil_r, 'Q', 1, fluid)
                     if T_main_r <= Tsat_in:
                         raise ValueError(
@@ -1881,7 +1751,6 @@ def _render_power_cycle_analysis_body():
                     h_in = cached_propsi('H', 'P', P_boil_r, 'T', T_main_r, fluid)
                     s_in = cached_propsi('S', 'P', P_boil_r, 'T', T_main_r, fluid)
 
-                    
                     expansion_pressures = list(reversed(P_stages)) + [P_cond_r]
                     turbine_states = []
                     h_prev, s_prev = h_in, s_in
@@ -1893,7 +1762,6 @@ def _render_power_cycle_analysis_body():
                         turbine_states.append(dict(P=Pext, h=h_act, T=T_act, s=s_act))
                         h_prev, s_prev = h_act, s_act
 
-                    
                     y_list = [None] * N          
                     T_cum = 0.0
                     for idx in range(N - 1, -1, -1):
@@ -1918,7 +1786,6 @@ def _render_power_cycle_analysis_body():
                             "Try a lower turbine inlet temperature / different pressures."
                         )
 
-                    
                     h_top_satliq = cached_propsi('H', 'P', P_stages[-1], 'Q', 0, fluid)
                     s_top_satliq = cached_propsi('S', 'P', P_stages[-1], 'Q', 0, fluid)
                     h_boiler_in_s = cached_propsi('H', 'P', P_boil_r, 'S', s_top_satliq, fluid)
@@ -1926,7 +1793,6 @@ def _render_power_cycle_analysis_body():
 
                     Q_boiler_r = h_in - h_boiler_in
 
-                    
                     flow = 1.0
                     W_turb_r = (h_in - turbine_states[0]['h']) * flow
                     for i in range(N):
@@ -1934,7 +1800,6 @@ def _render_power_cycle_analysis_body():
                         W_turb_r += (turbine_states[i]['h'] - turbine_states[i + 1]['h']) * flow
                     flow_to_condenser = flow  
 
-                    
                     h_cond_satliq = cached_propsi('H', 'P', P_cond_r, 'Q', 0, fluid)
                     s_cond_satliq = cached_propsi('S', 'P', P_cond_r, 'Q', 0, fluid)
                     h_pump0_s = cached_propsi('H', 'P', P_stages[0], 'S', s_cond_satliq, fluid)
@@ -2021,7 +1886,6 @@ def _render_power_cycle_analysis_body():
                         fig_rg.add_trace(go.Scatter(x=conv(np.array(dome['sg']),'S'), y=conv(np.array(dome['T']),'T'), mode='lines',
                                                      line=dict(color=tc()['dome_vap'], width=3), name='Sat Vapor'))
 
-                    
                     Tsat_boiler = cached_propsi('T', 'P', P_boil_r, 'Q', 0, fluid) - 273.15
                     s_satliq_boiler = cached_propsi('S', 'P', P_boil_r, 'Q', 0, fluid) / 1000
                     s_satvap_boiler = cached_propsi('S', 'P', P_boil_r, 'Q', 1, fluid) / 1000
@@ -2032,7 +1896,6 @@ def _render_power_cycle_analysis_body():
                     fig_rg.add_trace(go.Scatter(x=boiler_s, y=boiler_T, mode='lines',
                                                  line=dict(color=tc()['boiler'], width=4), name='Boiler'))
 
-                    
                     red_s, red_T, red_lbl = [], [], []
                     red_s.append(s_cond_satliq / 1000); red_T.append(cached_propsi('T', 'P', P_cond_r, 'Q', 0, fluid) - 273.15); red_lbl.append('1')
                     red_s.append(cached_propsi('S', 'P', P_stages[0], 'H', h_pump0, fluid) / 1000); red_T.append(cached_propsi('T', 'P', P_stages[0], 'H', h_pump0, fluid) - 273.15); red_lbl.append('2')
@@ -2063,7 +1926,6 @@ def _render_power_cycle_analysis_body():
                     red_s.append(ts_exit['s'] / 1000); red_T.append(ts_exit['T'] - 273.15)
                     red_lbl.append(str(lbl_n)); condenser_in_idx = len(red_s) - 1
 
-                    
                     s_u_rg, t_u_rg = disp_unit('S'), disp_unit('T')
                     red_s = [conv(v, 'S') for v in red_s]
                     red_T = [conv(v, 'T') for v in red_T]
@@ -2071,7 +1933,6 @@ def _render_power_cycle_analysis_body():
                     boiler_T = [conv(v, 'T') for v in boiler_T]
                     Tsat_boiler = conv(Tsat_boiler, 'T')
 
-                    
                     main_path_idx = [0, 1] + [2 + 2*k if k == 0 else 2 + 2*k for k in range(0, 1)]
                     fig_rg.add_trace(go.Scatter(x=[red_s[0], red_s[1]], y=[red_T[0], red_T[1]],
                                                  mode='lines', line=dict(color=tc()['pump'], width=3), name='Pump I', showlegend=False))
@@ -2107,7 +1968,6 @@ def _render_power_cycle_analysis_body():
                                                  text=red_lbl, textposition='top center', textfont=dict(color=tc()['label_text'], size=13),
                                                  showlegend=False, hovertemplate=f"s: %{{x:.4f}} {s_u_rg}<br>T: %{{y:.1f}} {t_u_rg}<extra></extra>"))
 
-                    
                     y_label = "y" if N == 1 else "Σy = " + f"{y_total:.3f}"
                     fig_rg.add_annotation(x=(red_s[0] + red_s[fwh_label_positions[0]]) / 2 if N > 0 else red_s[0],
                                            y=(min(red_T) + Tsat_boiler) / 2,
@@ -2132,7 +1992,6 @@ def _render_power_cycle_analysis_body():
     with cycle_tab2:
         st.subheader("Brayton Cycle — Open-Cycle Gas Turbine")
 
-        
         with st.container(key="igrid_br1"):
             bc1, bc2 = st.columns(2)
         with bc1:
@@ -2242,7 +2101,6 @@ def _render_power_cycle_analysis_body():
             T4b = cached_propsi("T", "P", P4b, "H", h4b, AIR)
             s4b = cached_propsi("S", "P", P4b, "H", h4b, AIR)
 
-            
             phases_ok = True
             phase_names = []
             for Pchk, Tchk in [(P1b, T1b), (P2b, T2b), (P3b, T3b), (P4b, T4b)]:
@@ -2339,7 +2197,6 @@ def _render_power_cycle_analysis_body():
                 )
             ))
 
-            
             fig_br.add_trace(go.Scatter(
                 x=[s1k, s1k], y=[T1k, conv(cached_propsi("T","P",P2b,"H",h2sb,AIR)-273.15,'T')],
                 mode="lines", line=dict(color=tc()['pump'], width=2, dash="dash"),
@@ -2351,7 +2208,6 @@ def _render_power_cycle_analysis_body():
                 name="Ideal Expansion"
             ))
 
-            
             fig_br.add_annotation(
                 x=(s1k+s2k)/2, y=(T1k+T2k)/2,
                 text=f"Wc = {conv(W_compb,'H'):.0f} {h_u_br}",
@@ -2398,10 +2254,6 @@ if st.session_state.app_view == "cycles":
 
 render_topbar("Fluid Property Explorer")
 
-# Critical temperature/pressure block — right at the top of this screen,
-# before mode selection. fmt_canon() keeps Tc/Pc in sync with whatever T/P
-# unit was last chosen (persisted in session_state), so this still reflects
-# the current unit choice even though it now renders before that dropdown.
 try:
     _tcrit_c = PropsSI('Tcrit', fluid) - 273.15
     _pcrit_bar = PropsSI('pcrit', fluid) / 100000
@@ -2410,8 +2262,8 @@ try:
     st.markdown(
         '<div class="small-box critical-box">'
         f'<span class="cb-fluid-line"><b>Active Fluid:</b> {fluid_display}</span><br>'
-        f'<b>Critical Point:</b> Tc = {_tcrit_disp} {_tcrit_u} &nbsp;|&nbsp; '
-        f'Pc = {_pcrit_disp} {_pcrit_u}</div>',
+        f'<span class="cb-critical-line"><b>Critical Point:</b> Tc = {_tcrit_disp} {_tcrit_u} &nbsp;|&nbsp; '
+        f'Pc = {_pcrit_disp} {_pcrit_u}</span></div>',
         unsafe_allow_html=True
     )
 except Exception:
@@ -2438,8 +2290,6 @@ mode = st.selectbox(
 col1, col2 = st.columns([1,2])
 with col1:
 
-    # ---- Step 1: the property inputs/units for the selected mode, in
-    # their existing grid layout — unchanged width/layout from before. ----
     quality_slider_visible = False
     if mode == "Saturation Properties at T":
         with st.container(key="igrid_exp_satT"):
@@ -2661,10 +2511,6 @@ with col1:
         input2 = 'D'
         val2 = 1 / V_input
 
-    # ---- Step 2: quality checkbox, then the Quality (x) slider right
-    # below it. Only the two saturation modes actually use quality as
-    # their second input — for every other mode this just sets the
-    # want_quality gate used later (liquid/vapor % box, mixture warning). ----
     if is_two_phase_fluid:
         want_quality = st.checkbox(
             "Quality Calculation",
@@ -2721,7 +2567,6 @@ except:
                 fluid
             ) / 100000
 
-            
             if input1 == 'P':
 
                 P_bar = val1 / 100000
@@ -2734,7 +2579,6 @@ except:
 
                 P_bar = None
 
-            
             if P_bar is not None and P_bar < Ptriple:
 
                 st.warning(
@@ -3198,20 +3042,10 @@ with col2:
 P_range = np.logspace(np.log10(limits["P_min"]), np.log10(limits["P_max"]), 100)
 Tmin, Tmax = get_plot_temperature_range(fluid_display)
 T_eval_range = np.linspace(Tmin, Tmax, 100)
-# Hashable copies of the eval ranges so st.cache_data can key on them below.
 T_tuple = tuple(float(t) for t in T_eval_range)
 P_tuple = tuple(float(p) for p in P_range)
 
 def add_state_marker(fig, x, y):
-    # NOTE: this file intentionally uses go.Scatter (SVG) everywhere below,
-    # not go.Scattergl (WebGL). The 6 diagrams used to use Scattergl for a
-    # perf boost, but each one opens its own WebGL context, and 6 open at
-    # once. Mobile browsers cap concurrent WebGL contexts (often well under
-    # 10) and evict page-wide under memory pressure, which is what caused
-    # charts to flicker on load and then all go blank together after a
-    # fullscreen toggle. These curves are only ~100-600 points each — plain
-    # SVG Scatter has no perceptible performance cost here and no context
-    # limit to hit.
     if not is_valid_number(x) or not is_valid_number(y):
         return
     fig.add_trace(go.Scatter(
