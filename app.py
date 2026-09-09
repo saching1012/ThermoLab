@@ -614,23 +614,12 @@ if _sidebar_open:
         '<style>section[data-testid="stSidebar"] {'
         ' display: block !important; transform: translateX(0) !important;'
         ' visibility: visible !important; pointer-events: auto !important; }'
+        ' div[data-testid="stSidebarUserContent"] { visibility: visible !important; }'
         ' .st-key-sidebar_backdrop { display: block !important; }'
         ' .st-key-burger_toggle { visibility: hidden !important; pointer-events: none !important; }'
         ' body { overflow: hidden !important; }'
         ' </style>',
         unsafe_allow_html=True
-    )
-else:
-    st.markdown(
-        '<style>section[data-testid="stSidebar"] {'
-        ' transform: translateX(100%) !important;'
-        ' pointer-events: none !important; }'
-        ' div[data-testid="stSidebarUserContent"] { visibility: hidden; }'
-        ' .st-key-sidebar_backdrop { display: none !important; }'
-        ' .st-key-burger_toggle { visibility: visible !important; pointer-events: auto !important; }'
-        ' </style>',
-        unsafe_allow_html=True
-
     )
 if st.button("Close menu", key="sidebar_backdrop", help="Close menu"):
     st.session_state.sidebar_open = False
